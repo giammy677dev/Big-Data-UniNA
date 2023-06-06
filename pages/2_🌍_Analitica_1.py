@@ -110,3 +110,64 @@ st.pyplot(fig)
 
 # Explicitly close the connection
 conn.close()
+
+
+import openai
+import streamlit as st
+import pandas as pd
+
+# Topic dell'utente
+topics = ["Politica","Economia","Social Media"]
+
+openai.api_key = "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"
+
+prompt= f"""Per i seguenti argomenti: {topics} restituiscimi un piccolo riassunto dicendo l'utente cosa pensa, nel caso in cui non dice nulla in riferimento a quell'argomento dammi come output "nessuna opinione espressa". Restituiscimi il messaggio di output in questa precisa forma senza scrivere nient altro:
+"nome Argomento 1; riassunto su Argomento 1;nome Argomento 2;riassunto Argomento 2;" e così via per tutti gli argomenti sopra elencati."""
+
+testoUtente = "Inserisci testo qui"
+
+"""
+response = openai.ChatCompletion.create(
+    model="gpt-3.5-turbo",
+    max_tokens=500,
+    temperature=0.7,
+    top_p=0.5,
+    frequency_penalty=0.5,
+    messages=[
+        {
+          "role" : "user",
+          "content": f"{prompt} Il testo da esaminare è il seguente: {testoUtente}",
+        },
+    ],
+)
+
+print(response["choices"][0]["message"]["content"])
+"""
+#PARTE 2: estrazione e preparazione dati per la tabella
+input_string = """Politica; L'utente esprime preoccupazione per il presunto scandalo politico legato a Biden, Obama e Hillary Clinton. Sentimento: Negativo.;Economia; Nessuna opinione espressa.;Social Media; Nessuna opinione espressa."""
+
+#codice reale
+#splitted_strings = response["choices"][0]["message"]["content"].split(";")
+
+#da rimpiazzare con quello reale
+splitted_strings = input_string.split(";")  # Divisione in base al punto e virgola per ogni stringa
+
+#PARTE 3: TABELLA SUMMARIZATION
+# Crea le checkbox per selezionare i topic
+selected_topics = st.multiselect("Seleziona i topic", topics)
+
+# Crea una lista vuota per i dati
+data = []
+
+# Aggiungi righe alla lista per ogni topic selezionato
+for i in range(0, len(splitted_strings), 2):
+    topic = splitted_strings[i].strip()  # Primo elemento della riga come topic
+    if topic in selected_topics:
+        value = splitted_strings[i + 1].strip()  # Secondo elemento della riga come valore
+        data.append({"Topic": topic, "Valore": value})
+
+# Crea un DataFrame a partire dalla lista di dati
+table = pd.DataFrame(data)
+
+# Mostra la tabella
+st.table(table)
