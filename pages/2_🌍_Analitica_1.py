@@ -20,7 +20,7 @@ string_results = [record['u.screen_name'] for record in query_results]
 selected_user = st.selectbox('Seleziona l\'utente:', string_results)
 
 # Layout a due colonne
-col1, col2 = st.columns(2)
+col1, col2 = st.columns([3, 1])
 
 with col1:
     # Salviamo la description dell'utente selezionato
@@ -41,8 +41,7 @@ with col1:
 
     st.write(
         '''
-        <div style="background-color: #FFA559; padding: 15px; border-radius: 5px; width: 60%;">
-            <br><br><br><br>
+        <div style="background-color: #454545; padding: 15px; border-radius: 5px;">
             {}
             {}
             {}
@@ -51,10 +50,10 @@ with col1:
         </div>
         '''.format(
             f'<p style="color: white;">⚠️ L\'utente {selected_user} non ha una descrizione</p>' if
-            description_results[0] == '' else f'<p style="color: white;"> {description_results[0]}</p>',
-            f'<p style="color: white;">Followers: {followers_results[0]}</p>',
-            f'<p style="color: white;">Following: {friends_results[0]}</p>',
-            f'<p style="color: white;">Numero di tweet: {statuses_results[0]}</p>',
+            description_results[0] == '' else f'<p style="color: white;"><b style="color: #00acee;">Descrizione:</b> {description_results[0]}</p>',
+            f'<p style="color: white;"><b style="color: #00acee;">Followers:</b> {followers_results[0]}</p>',
+            f'<p style="color: white;"><b style="color: #00acee;">Following:</b> {friends_results[0]}</p>',
+            f'<p style="color: white;"><b style="color: #00acee;">Numero di tweet:</b> {statuses_results[0]}</p>',
             f'<p style="color: white;">✔️</p>' if verified_results[0] == 'True' else ''
         ),
         unsafe_allow_html=True
@@ -67,18 +66,20 @@ with col2:
     string_results = [record['u.cat'] for record in query_results]
     if string_results[0] == 'MYT':
         st.markdown(
-            f'<br><br><br><br><div style="background-color: #FFA559; padding: 15px; border-radius: 5px;width: 60%;">'
+            f'<div style="background-color: #00acee; padding: 15px; border-radius: 5px;">'
             f'<p style="color: white;">:warning: L\'utente {selected_user} è stato moderato su YouTube. Giudicando i suoi contenuti su Twitter, l\'indice di pericolosità è tot</p>' # INDICARE INDICE
             f'</div>',
             unsafe_allow_html=True
         )
     else:
         st.markdown(
-            f'<br><br><br><br><div style="background-color: #FFA559; padding: 15px; border-radius: 5px;width: 60%;">'
+            f'<div style="background-color: #00acee; padding: 15px; border-radius: 5px;">'
             f'<p style="color: white;"> L\'utente {selected_user} non è stato moderato su YouTube. Giudicando i suoi contenuti su Twitter, l\'indice di pericolosità è tot</p>'  # INDICARE INDICE
             f'</div>',
             unsafe_allow_html=True
         )
+
+st.markdown("\n\n")
 
 # Aggiungiamo la tag cloud per l'utente selezionato
 stop_words = stopwords.words('english') #Stopwords di nltk
