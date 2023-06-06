@@ -6,7 +6,6 @@ from wordcloud import WordCloud
 import matplotlib.pyplot as plt
 
 openai.api_key = "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"
-OPENAI_KEY = openai.api_key
 
 
 class Neo4jConnection:

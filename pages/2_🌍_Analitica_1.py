@@ -1,7 +1,8 @@
-from utils import st, pd, conn, OPENAI_KEY, WordCloud, plt
+from utils import st, pd, conn, WordCloud, plt, openai
 import nltk
 from nltk.corpus import stopwords
 from gensim.parsing.preprocessing import STOPWORDS
+from math import floor
 nltk.download('stopwords')
 
 st.set_page_config(
@@ -84,18 +85,18 @@ st.markdown("\n\n")
 # Aggiungiamo la tag cloud per l'utente selezionato
 stop_words = stopwords.words('english') #Stopwords di nltk
 custom_stopwords = set(STOPWORDS) #Stopwords di gensim
-custom_stopwords.update(['rt', '', '&amp;', '|']) #Aggiungiamo stopwords personalizzate
+custom_stopwords.update(['rt', '', '&amp;', '|', 'it\'s']) #Aggiungiamo stopwords personalizzate
 custom_stopwords = list(custom_stopwords)
 
 query = f"""MATCH (u:Utente)-[:ha_twittato]->(m:Messaggio) WHERE u.screen_name = '{selected_user}'
-WITH m.text AS testo
-WITH testo, SPLIT(toLower(testo), ' ') AS parole
-UNWIND parole AS parola
-WITH parola, COUNT(DISTINCT testo) AS frequenza
-WHERE frequenza > 1 AND NOT parola IN {stop_words} AND NOT parola IN {custom_stopwords}
-RETURN parola, frequenza
-ORDER BY frequenza DESC
-"""
+            WITH m.text AS testo
+            WITH testo, SPLIT(toLower(testo), ' ') AS parole
+            UNWIND parole AS parola
+            WITH parola, COUNT(DISTINCT testo) AS frequenza
+            WHERE frequenza > 1 AND NOT parola IN {stop_words} AND NOT parola IN {custom_stopwords}
+            RETURN parola, frequenza
+            ORDER BY frequenza DESC
+        """
 query_results = conn.query(query)
 frequency_results = [(record['parola'], record['frequenza']) for record in query_results]
 frequency_results = [elemento for elemento in frequency_results if len(elemento) > 1]
@@ -108,62 +109,124 @@ ax.imshow(wordcloud, interpolation='bilinear')
 ax.axis('off')
 st.pyplot(fig)
 
-# Explicitly close the connection
-conn.close()
+# Aggiungiamo il box per la summarization dell'utente selezionato
+# Selezioniamo i topic dell'utente
+query = f"MATCH (u:Utente) WHERE u.screen_name = '{selected_user}' UNWIND split(u.topic, ';') AS topic RETURN topic"
+query_results = conn.query(query)
+topic_results = [record['topic'] for record in query_results]
+
+# Selezioniamo i tweet dell'utente
+query = f"""MATCH (u:Utente)-[:ha_twittato]->(m:Messaggio) WHERE u.screen_name = '{selected_user}'
+            WITH COLLECT(m.text) AS texts
+            WITH [text IN texts | REDUCE(s = '', word IN SPLIT(text, ' ') | CASE WHEN NOT word CONTAINS 'http' THEN s + ' ' + word ELSE s END)] AS filteredTexts
+            RETURN (REDUCE(s = '', text IN filteredTexts | s + ' ' + text)) AS mergedText
+        """
+query_results = conn.query(query)
+tweets_results = [record['mergedText'] for record in query_results]
+tweets_to_summarize = tweets_results[0]
 
 
-import openai
-import streamlit as st
-import pandas as pd
+def split_string_in_batches(stringa, batch_size):
+    batches = []
+    length = len(stringa)
+    start_index = 0
+    end_index = batch_size
 
-# Topic dell'utente
-topics = ["Politica","Economia","Social Media"]
+    while start_index < length:
+        if end_index >= length:
+            end_index = length
 
-openai.api_key = "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"
+        batch = stringa[start_index:end_index]
+        batches.append(batch)
 
-prompt= f"""Per i seguenti argomenti: {topics} restituiscimi un piccolo riassunto dicendo l'utente cosa pensa, nel caso in cui non dice nulla in riferimento a quell'argomento dammi come output "nessuna opinione espressa". Restituiscimi il messaggio di output in questa precisa forma senza scrivere nient altro:
-"nome Argomento 1; riassunto su Argomento 1;nome Argomento 2;riassunto Argomento 2;" e così via per tutti gli argomenti sopra elencati."""
+        start_index = end_index
+        end_index += batch_size
 
-testoUtente = "Inserisci testo qui"
+    return batches
 
-"""
-response = openai.ChatCompletion.create(
-    model="gpt-3.5-turbo",
-    max_tokens=500,
-    temperature=0.7,
-    top_p=0.5,
-    frequency_penalty=0.5,
-    messages=[
-        {
-          "role" : "user",
-          "content": f"{prompt} Il testo da esaminare è il seguente: {testoUtente}",
-        },
-    ],
-)
 
-print(response["choices"][0]["message"]["content"])
-"""
-#PARTE 2: estrazione e preparazione dati per la tabella
-input_string = """Politica; L'utente esprime preoccupazione per il presunto scandalo politico legato a Biden, Obama e Hillary Clinton. Sentimento: Negativo.;Economia; Nessuna opinione espressa.;Social Media; Nessuna opinione espressa."""
+def chatGPT_summarization_request(tweets_batch):
+    prompt = f"""Dammi in output solo il riassunto in un unico testo dei main topic e della posizione dell'utente per quel topic:"""
+    response = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        max_tokens=2000,
+        temperature=0.7,
+        top_p=0.5,
+        frequency_penalty=0.5,
+        messages=[
+            {
+                "role": "user",
+                "content": f"{prompt} Il testo da esaminare è il seguente: {tweets_batch}",
+            },
+        ],
+    )
+    summary_response = response["choices"][0]["message"]["content"]
+    return summary_response
 
-#codice reale
-#splitted_strings = response["choices"][0]["message"]["content"].split(";")
 
-#da rimpiazzare con quello reale
-splitted_strings = input_string.split(";")  # Divisione in base al punto e virgola per ogni stringa
+def chatGPT_final_request(summary, topics):
+    prompt = f"""Per i seguenti argomenti: {topics} restituiscimi un piccolo riassunto dicendo l'utente cosa pensa,
+            nel caso in cui non dice nulla in riferimento a quell'argomento dammi come output "nessuna opinione espressa".
+            Restituiscimi il messaggio di output in italiano in questa precisa forma (separando con il punto e virgola
+            il nome ed il riassunto di ogni argomento) senza scrivere nient'altro:
+            "nome Argomento 1; riassunto su Argomento 1; nome Argomento 2; riassunto Argomento 2;" e così via per tutti
+            gli argomenti sopra elencati."""
+    response = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        max_tokens=2000,
+        temperature=0.7,
+        top_p=0.5,
+        frequency_penalty=0.5,
+        messages=[
+            {
+              "role" : "user",
+              "content": f"{prompt} Il testo da esaminare è il seguente: {summary}",
+            },
+        ],
+    )
+    string_response = response["choices"][0]["message"]["content"].split(";")
+    return string_response
 
-#PARTE 3: TABELLA SUMMARIZATION
+
+@st.cache_data
+def chatGPT_script(tweets, topics):
+    batch_size = 5000
+    batches = split_string_in_batches(tweets, batch_size)
+    st.write(len(batches))
+    if len(batches) == 1:
+        full_response = batches[0]
+    elif len(batches) == 2:
+        first_batch = batches[0]
+        second_batch = batches[1]
+        first_response = chatGPT_summarization_request(first_batch)
+        second_response = chatGPT_summarization_request(second_batch)
+        full_response = first_response + second_response
+    else:
+        first_batch = batches[0]
+        central_batch = batches[floor(len(batches)/2)]
+        last_batch = batches[len(batches)-1]
+        first_response = chatGPT_summarization_request(first_batch)
+        central_response = chatGPT_summarization_request(central_batch)
+        last_response = chatGPT_summarization_request(last_batch)
+        full_response = first_response + central_response + last_response
+
+    response = chatGPT_final_request(full_response, topics)
+    return response
+
+
+chatGPT_response = chatGPT_script(tweets_to_summarize, topic_results)
+
 # Crea le checkbox per selezionare i topic
-selected_topics = st.multiselect("Seleziona i topic", topics)
+selected_topics = st.multiselect("Seleziona i topic", topic_results)
 
 # Crea una lista vuota per i dati
 data = []
 
 # Aggiungi righe alla lista per ogni topic selezionato
-for i in range(0, len(splitted_strings), 2):
-    topic = splitted_strings[i].strip()  # Primo elemento della riga come topic
+for i in range(0, len(chatGPT_response), 2):
+    topic = chatGPT_response[i].strip()  # Primo elemento della riga come topic
     if topic in selected_topics:
-        value = splitted_strings[i + 1].strip()  # Secondo elemento della riga come valore
+        value = chatGPT_response[i + 1].strip()  # Secondo elemento della riga come valore
         data.append({"Topic": topic, "Valore": value})
 
 # Crea un DataFrame a partire dalla lista di dati
@@ -171,3 +234,6 @@ table = pd.DataFrame(data)
 
 # Mostra la tabella
 st.table(table)
+
+# Explicitly close the connection
+conn.close()
