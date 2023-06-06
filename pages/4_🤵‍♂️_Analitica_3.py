@@ -173,5 +173,7 @@ fig.update_layout(
 # Visualizzazione del grafico su Streamlit
 st.plotly_chart(fig)
 
+st.write("aaa")
+
 # Explicitly close the connection
 conn.close()
