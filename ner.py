@@ -5,8 +5,8 @@ from transformers import DistilBertTokenizer, DistilBertForSequenceClassificatio
 tokenizer = DistilBertTokenizer.from_pretrained('distilbert-base-uncased')
 model = DistilBertForSequenceClassification.from_pretrained('distilbert-base-uncased', num_labels=12)
 
-query = f"""MATCH (u:Utente)-[:ha_twittato]->(m:Messaggio)
-            WHERE m.topic <> ''
+query = f"""MATCH (m:Messaggio)
+            WHERE m.topic = ''
             RETURN m.text, m.tweetid
         """
 query_results = conn.query(query)
