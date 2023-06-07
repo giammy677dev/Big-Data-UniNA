@@ -1,4 +1,4 @@
-from utils import st, conn, OPENAI_KEY
+from utils import st, conn
 
 st.set_page_config(
     page_title="Hello",

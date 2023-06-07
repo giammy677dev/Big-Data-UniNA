@@ -1,4 +1,4 @@
-from utils import st, pd, conn, OPENAI_KEY, WordCloud, plt
+from utils import st, pd, conn, WordCloud, plt
 import nltk
 from nltk.corpus import stopwords
 from gensim.parsing.preprocessing import STOPWORDS
