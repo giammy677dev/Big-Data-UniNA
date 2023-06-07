@@ -110,21 +110,18 @@ ax.axis('off')
 st.pyplot(fig)
 
 # Aggiungiamo il box per la summarization dell'utente selezionato
-# Selezioniamo i topic dell'utente
-query = f"MATCH (u:Utente) WHERE u.screen_name = '{selected_user}' UNWIND split(u.topic, ';') AS topic RETURN topic"
-query_results = conn.query(query)
-topic_results = [record['topic'] for record in query_results]
-
-# Selezioniamo i tweet dell'utente
-query = f"""MATCH (u:Utente)-[:ha_twittato]->(m:Messaggio) WHERE u.screen_name = '{selected_user}'
-            WITH COLLECT(m.text) AS texts
-            WITH [text IN texts | REDUCE(s = '', word IN SPLIT(text, ' ') | CASE WHEN NOT word CONTAINS 'http' THEN s + ' ' + word ELSE s END)] AS filteredTexts
-            RETURN (REDUCE(s = '', text IN filteredTexts | s + ' ' + text)) AS mergedText
+# Selezioniamo i topic dell'utente e mergiamo i testi dei tweet relativi a quel topic
+query = f"""MATCH (u:Utente)-[:ha_twittato]->(m:Messaggio)
+            WHERE u.screen_name = '{selected_user}'
+            WITH m, SPLIT(m.topic, ';') AS topics
+            UNWIND topics AS topic
+            WITH topic, COLLECT(m.text) AS texts
+            WITH topic, [text IN texts | REDUCE(s = '', word IN SPLIT(text, ' ') | CASE WHEN NOT word CONTAINS 'http' THEN s + ' ' + word ELSE s END)] AS filteredTexts
+            RETURN topic, REDUCE(mergedText = '', text IN filteredTexts | mergedText + ' ' + text) AS mergedText
         """
 query_results = conn.query(query)
-tweets_results = [record['mergedText'] for record in query_results]
-tweets_to_summarize = tweets_results[0]
-
+tweets_results = [(record['mergedText'], record['topic']) for record in query_results]
+# tweets_to_summarize = tweets_results[0]
 
 def split_string_in_batches(stringa, batch_size):
     batches = []
@@ -141,12 +138,11 @@ def split_string_in_batches(stringa, batch_size):
 
         start_index = end_index
         end_index += batch_size
-
     return batches
 
 
-def chatGPT_summarization_request(tweets_batch):
-    prompt = f"""Dammi in output solo il riassunto in un unico testo dei main topic e della posizione dell'utente per quel topic:"""
+def chatGPT_request(text):
+    prompt = f"""Dammi in output il riassunto in un unico testo della posizione dell'utente."""
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         max_tokens=2000,
@@ -156,66 +152,46 @@ def chatGPT_summarization_request(tweets_batch):
         messages=[
             {
                 "role": "user",
-                "content": f"{prompt} Il testo da esaminare è il seguente: {tweets_batch}",
+                "content": f"{prompt} Il testo da esaminare è il seguente: {text}",
             },
         ],
     )
     summary_response = response["choices"][0]["message"]["content"]
     return summary_response
 
-
-def chatGPT_final_request(summary, topics):
-    prompt = f"""Per i seguenti argomenti: {topics} restituiscimi un piccolo riassunto dicendo l'utente cosa pensa,
-            nel caso in cui non dice nulla in riferimento a quell'argomento dammi come output "nessuna opinione espressa".
-            Restituiscimi il messaggio di output in italiano in questa precisa forma (separando con il punto e virgola
-            il nome ed il riassunto di ogni argomento) senza scrivere nient'altro:
-            "nome Argomento 1; riassunto su Argomento 1; nome Argomento 2; riassunto Argomento 2;" e così via per tutti
-            gli argomenti sopra elencati."""
-    response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
-        max_tokens=2000,
-        temperature=0.7,
-        top_p=0.5,
-        frequency_penalty=0.5,
-        messages=[
-            {
-              "role" : "user",
-              "content": f"{prompt} Il testo da esaminare è il seguente: {summary}",
-            },
-        ],
-    )
-    string_response = response["choices"][0]["message"]["content"].split(";")
-    return string_response
-
-
 @st.cache_data
-def chatGPT_script(tweets, topics):
+def chatGPT_script(tweets):
+    response_dict = {"Topic": [], "Response": []}
     batch_size = 5000
-    batches = split_string_in_batches(tweets, batch_size)
-    st.write(len(batches))
-    if len(batches) == 1:
-        full_response = batches[0]
-    elif len(batches) == 2:
-        first_batch = batches[0]
-        second_batch = batches[1]
-        first_response = chatGPT_summarization_request(first_batch)
-        second_response = chatGPT_summarization_request(second_batch)
-        full_response = first_response + second_response
-    else:
-        first_batch = batches[0]
-        central_batch = batches[floor(len(batches)/2)]
-        last_batch = batches[len(batches)-1]
-        first_response = chatGPT_summarization_request(first_batch)
-        central_response = chatGPT_summarization_request(central_batch)
-        last_response = chatGPT_summarization_request(last_batch)
-        full_response = first_response + central_response + last_response
+    for tweet, topic in tweets:
+        batches = split_string_in_batches(tweet, batch_size)
+        if len(batches) == 1:
+            full_response = batches[0]
+        elif len(batches) == 2:
+            first_batch = batches[0]
+            second_batch = batches[1]
+            first_response = chatGPT_request(first_batch)
+            second_response = chatGPT_request(second_batch)
+            full_response = first_response + second_response
+        else:
+            first_batch = batches[0]
+            central_batch = batches[floor(len(batches)/2)]
+            last_batch = batches[len(batches)-1]
+            first_response = chatGPT_request(first_batch)
+            central_response = chatGPT_request(central_batch)
+            last_response = chatGPT_request(last_batch)
+            full_response = first_response + central_response + last_response
 
-    response = chatGPT_final_request(full_response, topics)
-    return response
+        response = chatGPT_request(full_response)
+        response_dict["Topic"].append(topic)
+        response_dict["Response"].append(response)
+    return response_dict
 
 
-chatGPT_response = chatGPT_script(tweets_to_summarize, topic_results)
+chatGPT_response = chatGPT_script(tweets_results)
+st.write(chatGPT_response)
 
+"""
 # Crea le checkbox per selezionare i topic
 selected_topics = st.multiselect("Seleziona i topic", topic_results)
 
@@ -234,6 +210,6 @@ table = pd.DataFrame(data)
 
 # Mostra la tabella
 st.table(table)
-
+"""
 # Explicitly close the connection
 conn.close()

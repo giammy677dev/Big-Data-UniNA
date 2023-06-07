@@ -58,10 +58,6 @@ for topic_id in range(num_topics):
 # Memorizzazione dei topic e delle probabilità che soddisfano le condizioni richieste
 for i, tweet_topics in enumerate(topics):
     print(i)
-    tweet_dict = {
-        "Tweet": i + 1,
-        "Topics": []
-    }
     # Ordinamento dei topic in base alla probabilità
     sorted_topics = sorted(tweet_topics, key=lambda x: x[1], reverse=True)
     if sorted_topics[0][1] > 0.7:
