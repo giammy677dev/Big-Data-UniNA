@@ -5,6 +5,8 @@ from gensim.parsing.preprocessing import STOPWORDS
 from math import floor
 nltk.download('stopwords')
 
+batch_size = 5000
+
 st.set_page_config(
     page_title="Hello",
     page_icon="👋",
@@ -121,7 +123,6 @@ query = f"""MATCH (u:Utente)-[:ha_twittato]->(m:Messaggio)
         """
 query_results = conn.query(query)
 tweets_results = [(record['mergedText'], record['topic']) for record in query_results]
-# tweets_to_summarize = tweets_results[0]
 
 def split_string_in_batches(stringa, batch_size):
     batches = []
@@ -142,7 +143,7 @@ def split_string_in_batches(stringa, batch_size):
 
 
 def chatGPT_request(text):
-    prompt = f"""Dammi in output il riassunto in un unico testo della posizione dell'utente."""
+    prompt = f"""Dammi in output il riassunto in italiano in un unico testo della posizione dell'utente."""
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         max_tokens=2000,
@@ -159,57 +160,55 @@ def chatGPT_request(text):
     summary_response = response["choices"][0]["message"]["content"]
     return summary_response
 
-@st.cache_data
-def chatGPT_script(tweets):
-    response_dict = {"Topic": [], "Response": []}
-    batch_size = 5000
-    for tweet, topic in tweets:
-        batches = split_string_in_batches(tweet, batch_size)
-        if len(batches) == 1:
-            full_response = batches[0]
-        elif len(batches) == 2:
-            first_batch = batches[0]
-            second_batch = batches[1]
-            first_response = chatGPT_request(first_batch)
-            second_response = chatGPT_request(second_batch)
-            full_response = first_response + second_response
-        else:
-            first_batch = batches[0]
-            central_batch = batches[floor(len(batches)/2)]
-            last_batch = batches[len(batches)-1]
-            first_response = chatGPT_request(first_batch)
-            central_response = chatGPT_request(central_batch)
-            last_response = chatGPT_request(last_batch)
-            full_response = first_response + central_response + last_response
 
-        response = chatGPT_request(full_response)
-        response_dict["Topic"].append(topic)
-        response_dict["Response"].append(response)
+@st.cache_data
+def chatGPT_script(selected_topic):
+    text = ''
+    response_dict = {"Topic": [], "Response": []}
+    for tweet, topic in tweets_results:
+        if topic == selected_topic:
+            text = tweet
+            break
+    batches = split_string_in_batches(text, batch_size)
+    if len(batches) == 1:
+        full_response = batches[0]
+    elif len(batches) == 2:
+        first_batch = batches[0]
+        second_batch = batches[1]
+        first_response = chatGPT_request(first_batch)
+        second_response = chatGPT_request(second_batch)
+        full_response = first_response + second_response
+    else:
+        first_batch = batches[0]
+        central_batch = batches[floor(len(batches)/2)]
+        last_batch = batches[len(batches)-1]
+        first_response = chatGPT_request(first_batch)
+        central_response = chatGPT_request(central_batch)
+        last_response = chatGPT_request(last_batch)
+        full_response = first_response + central_response + last_response
+    response = chatGPT_request(full_response)
+    response_dict["Topic"].append(selected_topic)
+    response_dict["Response"].append(response)
     return response_dict
 
 
-chatGPT_response = chatGPT_script(tweets_results)
-st.write(chatGPT_response)
-
-"""
 # Crea le checkbox per selezionare i topic
-selected_topics = st.multiselect("Seleziona i topic", topic_results)
+selected_topic = st.multiselect("Seleziona i topic", [topic[1] for topic in tweets_results])
 
-# Crea una lista vuota per i dati
-data = []
-
-# Aggiungi righe alla lista per ogni topic selezionato
-for i in range(0, len(chatGPT_response), 2):
-    topic = chatGPT_response[i].strip()  # Primo elemento della riga come topic
-    if topic in selected_topics:
-        value = chatGPT_response[i + 1].strip()  # Secondo elemento della riga come valore
+if len(selected_topic) >= 1:
+    chatGPT_response = chatGPT_script(selected_topic[len(selected_topic) - 1])
+    st.write(chatGPT_response)
+    """
+    # Aggiungi righe alla lista per ogni topic selezionato
+    for topic, value in chatGPT_response:
+        topic = chatGPT_response["Topic"][0]  # Primo elemento della riga come topic
+        value = chatGPT_response["Response"][0]  # Secondo elemento della riga come valore
         data.append({"Topic": topic, "Valore": value})
+    # Crea un DataFrame a partire dalla lista di dati
+    table = pd.DataFrame(data)
 
-# Crea un DataFrame a partire dalla lista di dati
-table = pd.DataFrame(data)
-
-# Mostra la tabella
-st.table(table)
-"""
+    # Mostra la tabella
+    st.table(table)
+    """
 # Explicitly close the connection
 conn.close()
