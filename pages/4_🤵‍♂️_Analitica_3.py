@@ -6,6 +6,7 @@ import plotly.graph_objects as go
 import streamlit as st
 import seaborn as sns
 import calendar
+from datetime import datetime
 
 st.set_page_config(
     page_title="Hello",
@@ -80,25 +81,28 @@ with col1:
     friends_results = [record['m.friends_count'] for record in query_results]
     statuses_results = [record['m.statuses_count'] for record in query_results]
 
-    st.write(
-        '''
-        <div style="background-color: #454545; padding: 15px; border-radius: 5px;">
-            {}
-            {}
-            {}
-            {}
-            {}
-        </div>
-        '''.format(
-            f'<p style="color: white;">⚠️ L\'utente {selected_user} non ha una descrizione</p>' if
-            description_results[0] == '' else f'<p style="color: white;"><b style="color: #00acee;">Descrizione:</b> {description_results[0]}</p>',
-            f'<p style="color: white;"><b style="color: #00acee;">Followers:</b> {followers_results[0]}</p>',
-            f'<p style="color: white;"><b style="color: #00acee;">Following:</b> {friends_results[0]}</p>',
-            f'<p style="color: white;"><b style="color: #00acee;">Numero di tweet:</b> {statuses_results[0]}</p>',
-            f'<p style="color: white;">✔️</p>' if verified_results[0] == 'True' else ''
-        ),
-        unsafe_allow_html=True
-    )
+    with st.expander("Info Box dell'utente", expanded=True):
+        if verified_results[0] == 'True':
+            col11, col12 = st.columns([1, 15])
+            with col11:
+                st.image('twitterVerifiedBadge.png', width=25)
+            with col12:
+                st.write("L'utente è verificato!")
+        st.write(
+            '''
+                {}
+                {}
+                {}
+                {}
+            '''.format(
+                f'<p style="color: white;">⚠️ L\'utente {selected_user} non ha una descrizione</p>' if
+                description_results[0] == '' else f'<p style="color: white;"><b style="color: #00acee;">Descrizione:</b> {description_results[0]}</p>',
+                f'<p style="color: white;"><b style="color: #00acee;">Followers:</b> {followers_results[0]}</p>',
+                f'<p style="color: white;"><b style="color: #00acee;">Following:</b> {friends_results[0]}</p>',
+                f'<p style="color: white;"><b style="color: #00acee;">Numero di tweet:</b> {statuses_results[0]}</p>'
+            ),
+            unsafe_allow_html=True
+        )
 
 # Aggiungiamo l'info box con le informazioni dell'utente selezionato
 with col2:
@@ -108,7 +112,10 @@ with col2:
     if string_results[0] == 'MYT':
         st.markdown(
             f'<div style="background-color: #00acee; padding: 15px; border-radius: 5px;">'
-            f'<p style="color: white;">:warning: L\'utente {selected_user} è stato moderato su YouTube. Giudicando i suoi contenuti su Twitter, l\'indice di pericolosità è tot</p>' # INDICARE INDICE
+            f'<div style="display: flex; flex-direction: column; align-items: center;">'
+            f'<span style="font-size: 30px;">⚠️</span>'
+            f'<p style="color: white; text-align: center;">L\'utente {selected_user} è stato moderato su YouTube. Giudicando i suoi contenuti su Twitter, l\'indice di pericolosità è tot</p>'
+            f'</div>'
             f'</div>',
             unsafe_allow_html=True
         )
@@ -149,8 +156,10 @@ ax.imshow(wordcloud, interpolation='bilinear')
 ax.axis('off')
 st.pyplot(fig)
 
-#GRAFICI TEMPORALI
+st.write("--------------------")
 
+#GRAFICI TEMPORALI
+st.write("**Grafici Temporali**")
 # Prendiamo i dati utili (tempo e valore) per i grafici
 query = f"""MATCH (u:Utente)-[r]-(m:Messaggio)
 WHERE u.screen_name= "{selected_user}"
@@ -158,36 +167,54 @@ RETURN m.date, m.followers_count, m.favourites_count
 ORDER BY m.date"""
 
 query_results = conn.query(query)
-date_results = [record['m.date'] for record in query_results]
+date_results = [datetime.strptime(record['m.date'], '%Y-%m-%d %H:%M:%S+00:00') for record in query_results]
 followers_results = [int(record['m.followers_count']) for record in query_results]
 favourites_results = [int(record['m.favourites_count']) for record in query_results]
 
-# Creazione del grafico temporale 1
-fig = go.Figure(data=go.Scatter(x=date_results, y=followers_results, mode='lines'))
+# Selezione data inizio e data fine su due colonne
+col1, col2 = st.columns(2)
+with col1:
+    start_date = st.date_input('Seleziona la data di inizio:', value=date_results[0].date())
+with col2:
+    end_date = st.date_input('Seleziona la data di fine:', value=date_results[-1].date())
 
-# Personalizzazione del grafico
-fig.update_layout(
+# Filtra i dati in base al range di date selezionato
+filtered_date_results = []
+filtered_followers_results = []
+filtered_favourites_results = []
+
+for date, followers, favourites in zip(date_results, followers_results, favourites_results):
+    if start_date <= date.date() <= end_date:
+        filtered_date_results.append(date)
+        filtered_followers_results.append(followers)
+        filtered_favourites_results.append(favourites)
+
+
+# Creazione del grafico temporale 1
+fig1 = go.Figure(data=go.Scatter(x=filtered_date_results, y=filtered_followers_results, mode='lines'))
+
+# Personalizzazione del grafico 1
+fig1.update_layout(
     title='Andamento dei followers nel tempo',
     xaxis_title='Data',
     yaxis_title='Followers'
 )
 
-# Visualizzazione del grafico su Streamlit
-st.plotly_chart(fig)
-
 # Creazione del grafico temporale 2
-fig = go.Figure(data=go.Scatter(x=date_results, y=favourites_results, mode='lines'))
+fig2 = go.Figure(data=go.Scatter(x=filtered_date_results, y=filtered_favourites_results, mode='lines'))
 
-# Personalizzazione del grafico
-fig.update_layout(
+# Personalizzazione del grafico 2
+fig2.update_layout(
     title='Andamento dei likes nel tempo',
     xaxis_title='Data',
     yaxis_title='Likes'
 )
 
-# Visualizzazione del grafico su Streamlit
-st.plotly_chart(fig)
+st.plotly_chart(fig1)
 
+st.plotly_chart(fig2)
+
+st.write("--------------------")
 
 #GRAFICO ISTOGRAMMA ATTIVITA' MENSILE
 st.write("**Attività mensile dell'utente**")
@@ -278,15 +305,15 @@ n_ranking = st.slider("Seleziona il numero di tweet per il ranking", 1, 10, 3)
 # Prendiamo i dati utili per il ranking
 query = f"""MATCH (u:Utente)-[r1]-(m:Messaggio)<-[r2]-(m1:Messaggio)
             WHERE u.screen_name = "{selected_user}"
-            RETURN m.tweetid, m.text, count(m)
+            RETURN m.tweetid, m.text, m.topic, count(m) as conteggio
             ORDER BY count(m) DESC
             LIMIT {n_ranking}"""
 
 query_results = conn.query(query)
-ranking_data = [(i+1, record['m.tweetid'], record['m.text'], record['count(m)']) for i, record in enumerate(query_results)]
+ranking_data = [(i+1, record['m.tweetid'], record['m.text'],record['m.topic'], record['conteggio']) for i, record in enumerate(query_results)]
 
 # Creiamo un DataFrame pandas con i dati
-df = pd.DataFrame(ranking_data, columns=['Posizione', 'ID', 'Testo', 'Conteggio'])
+df = pd.DataFrame(ranking_data, columns=['Posizione', 'ID', 'Testo del tweet', 'Topic trattato', 'Conteggio interazioni'])
 
 # Rimuoviamo la colonna degli indici
 df.set_index('Posizione', inplace=True)
@@ -299,9 +326,9 @@ st.header(f"Top {n_ranking} tweets")
 st.table(df_display)
 
 # Seleziona un tweet dal ranking
-selected_text = st.selectbox("**Seleziona un tweet**", df['Testo'])
+selected_text = st.selectbox(f"**Seleziona uno dei tweet della top {n_ranking}**", df['Testo del tweet'])
 # Ottieni l'ID del tweet selezionato
-selected_tweet = df[df['Testo'] == selected_text]['ID'].values[0]
+selected_tweet = df[df['Testo del tweet'] == selected_text]['ID'].values[0]
 
 #SPAZIO PER SENTIMENT ANALYSIS
 
