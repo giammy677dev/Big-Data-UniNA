@@ -118,13 +118,13 @@ for month in month_list:
     sentiment = perform_sentiment_analysis(text_month)
     sentiment_values.append(sentiment)
 
-fig = px.line(x=month_list, y=sentiment_values)
+fig = px.line(x=month_list, y=sentiment_values, markers = False)
 
-# Personalizzazione del grafico
 fig.update_layout(
-    title="Sentiment mensile",
-    xaxis_title="Mesi",
-    yaxis_title="Sentiment"
+    title='Sentiment Mensile',
+    xaxis_title='Mesi',
+    yaxis_title='Sentiment',
+    yaxis_range=[-1, 1]
 )
 
 # Visualizzazione del grafico
