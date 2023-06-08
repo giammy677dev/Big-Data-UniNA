@@ -1,7 +1,6 @@
-from utils import st, conn, pd
-#DA METTERE SE FUNZIONA
-import bar_chart_race as bcr
-from itertools import groupby
+from utils import st, conn, pd, WordCloud, plt, openai, AutoTokenizer, AutoModelForSequenceClassification, AutoConfig
+from scipy.special import softmax
+import plotly.express as px
 
 st.set_page_config(
     page_title="Hello",
@@ -57,9 +56,12 @@ with col2:
     #st.write(count_by_date_topic)
 
 # Andiamo a prendere i testi che contengono il topic selezionato nel campo topic
-
 # Aggiungiamo il filtro per selezionare i topic da visualizzare
-query = f"MATCH (m:Messaggio) WHERE m.topic CONTAINS '{selected_topic}' RETURN m.text, LEFT(m.date, 10) AS data ORDER BY data"
+query = f"""MATCH (m:Messaggio)
+            WHERE m.topic CONTAINS '{selected_topic}'
+            RETURN m.text, LEFT(m.date, 10) AS data
+            ORDER BY data
+        """
 query_results = conn.query(query)
 selected_topic_results = [(record['m.text'], record['data']) for record in query_results]
 
@@ -81,7 +83,52 @@ for month, texts in month_dict.items():
     combined_text = ' '.join(texts)
     monthly_texts[month] = combined_text
 
-# SERVE QUI LA SENTIMENT ED IL GRAFICO
+# Sentiment analysis
+# Carichiamo il tokenizer ed il modello pre-addestrato di sentiment analysis
+MODEL = f"cardiffnlp/twitter-roberta-base-sentiment-latest"
+tokenizer = AutoTokenizer.from_pretrained(MODEL)
+config = AutoConfig.from_pretrained(MODEL)
+model = AutoModelForSequenceClassification.from_pretrained(MODEL)
+
+
+def perform_sentiment_analysis(_text):
+    # Tokenizzazione del testo di input
+    input = tokenizer(_text, padding=True, truncation=True, max_length=512, return_tensors="pt")
+
+    # Inferenza del modello
+    output = model(**input)
+
+    # Ottieni le predizioni del modello
+    scores = output[0][0].detach().numpy()
+    scores = softmax(scores)
+
+    positive_score = float(scores[config.label2id["positive"]])
+    neutral_score = float(scores[config.label2id["neutral"]])
+    negative_score = float(scores[config.label2id["negative"]])
+
+    sentiment_value = (positive_score + (neutral_score / 2)) - negative_score
+    return sentiment_value
+
+
+sentiment_values = []
+month_list = list(monthly_texts.keys())
+
+for month in month_list:
+    text_month = monthly_texts[month]
+    sentiment = perform_sentiment_analysis(text_month)
+    sentiment_values.append(sentiment)
+
+fig = px.line(x=month_list, y=sentiment_values)
+
+# Personalizzazione del grafico
+fig.update_layout(
+    title="Sentiment mensile",
+    xaxis_title="Mesi",
+    yaxis_title="Sentiment"
+)
+
+# Visualizzazione del grafico
+st.plotly_chart(fig)
 
 col1, col2 = st.columns([1, 1])
 with col1:
@@ -95,6 +142,3 @@ with col1:
         query_results = conn.query(query)
         text_results = [record['combined_text'] for record in query_results]
         st.write(text_results)
-
-
-
