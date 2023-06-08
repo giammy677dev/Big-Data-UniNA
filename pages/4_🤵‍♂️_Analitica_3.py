@@ -4,7 +4,8 @@ from nltk.corpus import stopwords
 from gensim.parsing.preprocessing import STOPWORDS
 import plotly.graph_objects as go
 import streamlit as st
-
+import seaborn as sns
+import calendar
 
 st.set_page_config(
     page_title="Hello",
@@ -159,8 +160,9 @@ ORDER BY m.date"""
 query_results = conn.query(query)
 date_results = [record['m.date'] for record in query_results]
 followers_results = [int(record['m.followers_count']) for record in query_results]
+favourites_results = [int(record['m.favourites_count']) for record in query_results]
 
-# Creazione del grafico temporale
+# Creazione del grafico temporale 1
 fig = go.Figure(data=go.Scatter(x=date_results, y=followers_results, mode='lines'))
 
 # Personalizzazione del grafico
@@ -173,7 +175,142 @@ fig.update_layout(
 # Visualizzazione del grafico su Streamlit
 st.plotly_chart(fig)
 
-st.write("aaa")
+# Creazione del grafico temporale 2
+fig = go.Figure(data=go.Scatter(x=date_results, y=favourites_results, mode='lines'))
+
+# Personalizzazione del grafico
+fig.update_layout(
+    title='Andamento dei likes nel tempo',
+    xaxis_title='Data',
+    yaxis_title='Likes'
+)
+
+# Visualizzazione del grafico su Streamlit
+st.plotly_chart(fig)
+
+
+#GRAFICO ISTOGRAMMA ATTIVITA' MENSILE
+st.write("**Attività mensile dell'utente**")
+# Prendiamo i dati utili (tempo e valore) per l'istogramma a barre verticali
+query = f"""MATCH (u:Utente)-[r]-(m:Messaggio)
+WHERE u.screen_name = "{selected_user}"
+WITH m, substring(m.date, 5, 2) AS month, substring(m.date, 0, 4) AS year
+RETURN year, month, count(m) AS messageCount
+ORDER BY year, month"""
+
+query_results = conn.query(query)
+month_results = [f"{record['year']}-{record['month']}" for record in query_results]
+count_result = [record['messageCount'] for record in query_results]
+
+# Ottenere i nomi dei mesi e degli anni corrispondenti ai numeri
+month_names = [f"{calendar.month_name[int(month.split('-')[1])]} {month.split('-')[0]}" for month in month_results]
+
+# Dizionario per la mappatura dei nomi completi dei mesi alle forme abbreviate
+month_abbreviations = {
+    'January': 'Jan',
+    'February': 'Feb',
+    'March': 'Mar',
+    'April': 'Apr',
+    'May': 'May',
+    'June': 'Jun',
+    'July': 'Jul',
+    'August': 'Aug',
+    'September': 'Sep',
+    'October': 'Oct',
+    'November': 'Nov',
+    'December': 'Dec'
+}
+
+# Converti i nomi completi dei mesi nelle forme abbreviate
+month_names = [month_abbreviations.get(month.split(' ')[0], month.split(' ')[0]) + ' ' + month.split(' ')[1] for month in month_names]
+
+# Imposta lo stile di seaborn senza griglia
+sns.set_style("dark", {"axes.facecolor": "none", "axes.grid": False})
+
+# Creazione dell'istogramma
+fig, ax = plt.subplots(facecolor='none')
+bars = ax.bar(month_names, count_result, width=0.6)
+
+# Imposta il colore del testo delle etichette delle barre come bianco
+for bar in bars:
+    ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height(), bar.get_height(), ha='center', va='bottom', color='white')
+
+# Imposta il colore del testo delle etichette degli assi e riduci la dimensione del carattere
+ax.xaxis.label.set_color('white')
+ax.yaxis.label.set_color('white')
+ax.xaxis.label.set_fontsize(8)
+ax.yaxis.label.set_fontsize(8)
+
+# Imposta il colore delle linee degli assi come bianco
+ax.spines['bottom'].set_color('white')
+ax.spines['left'].set_color('white')
+
+# Nascondi le linee degli assi
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
+
+# Nascondi i ticks degli assi
+ax.tick_params(axis='x', colors='white')
+ax.tick_params(axis='y', colors='white')
+
+# Imposta la dimensione del carattere per i valori vicino agli assi
+ax.xaxis.set_tick_params(labelsize=7)
+ax.yaxis.set_tick_params(labelsize=7)
+
+# Aggiungi etichette sull'asse x e sull'asse y
+ax.set_xlabel('Mese e Anno', color='white')
+ax.set_ylabel('Conteggio attività', color='white')
+
+# Mostra il grafico su Streamlit
+st.pyplot(fig)
+
+
+st.header(f"Analitiche sui Tweet di '{selected_user}'")
+
+
+#RANKING TWEET
+st.write(f"**Ranking dei Tweet rilevanti**")
+st.write("Per identificare i tweet più rilevanti per questo ranking, si fa riferimento ai tweet col maggior numero di interazioni, considerando numero di retweet, numero di quoted tweet e numero di risposte associati, per ogni tweet.")
+
+# Inserisci il numero di tweet da considerare per il ranking
+n_ranking = st.slider("Seleziona il numero di tweet per il ranking", 1, 10, 3)
+
+# Prendiamo i dati utili per il ranking
+query = f"""MATCH (u:Utente)-[r1]-(m:Messaggio)<-[r2]-(m1:Messaggio)
+            WHERE u.screen_name = "{selected_user}"
+            RETURN m.tweetid, m.text, count(m)
+            ORDER BY count(m) DESC
+            LIMIT {n_ranking}"""
+
+query_results = conn.query(query)
+ranking_data = [(i+1, record['m.tweetid'], record['m.text'], record['count(m)']) for i, record in enumerate(query_results)]
+
+# Creiamo un DataFrame pandas con i dati
+df = pd.DataFrame(ranking_data, columns=['Posizione', 'ID', 'Testo', 'Conteggio'])
+
+# Rimuoviamo la colonna degli indici
+df.set_index('Posizione', inplace=True)
+
+# Nascondiamo la colonna dell'ID nella tabella
+df_display = df.drop(columns=['ID'])
+
+# Mostra la tabella
+st.header(f"Top {n_ranking} tweets")
+st.table(df_display)
+
+# Seleziona un tweet dal ranking
+selected_text = st.selectbox("**Seleziona un tweet**", df['Testo'])
+# Ottieni l'ID del tweet selezionato
+selected_tweet = df[df['Testo'] == selected_text]['ID'].values[0]
+
+#SPAZIO PER SENTIMENT ANALYSIS
+
+
+#Recupero i testi dei tweet che hanno risposto o citato (senza retweet) questo tweet per una sentiment analysis 'media'
+query = f"""MATCH (u:Utente)-[r1]-(m1:Messaggio)<-[r2:ha_citato|ha_risposto]-(m2:Messaggio)
+            WHERE u.screen_name = "{selected_user}" AND m1.tweetid = "{selected_tweet}"
+            RETURN m2.text
+            """
 
 # Explicitly close the connection
 conn.close()
