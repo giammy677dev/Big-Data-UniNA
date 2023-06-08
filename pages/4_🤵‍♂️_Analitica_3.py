@@ -8,6 +8,7 @@ import seaborn as sns
 import calendar
 from scipy.special import softmax
 from datetime import datetime
+import numpy as np
 
 st.set_page_config(
     page_title="Hello",
@@ -359,20 +360,137 @@ def perform_sentiment_analysis(_text):
 sentiment = perform_sentiment_analysis(selected_text)
 
 
-# Recupero i testi dei tweet che hanno risposto o citato (senza retweet) questo tweet per una sentiment analysis 'media'
-sentiment_list = []
-query = f"""MATCH (u:Utente)-[r1]-(m1:Messaggio)<-[r2:ha_citato|ha_risposto]-(m2:Messaggio)
-            WHERE u.screen_name = "{selected_user}" AND m1.tweetid = "{selected_tweet}"
-            RETURN m2.text
-            """
-query_results = conn.query(query)
-text_result = [record['m2.text'] for record in query_results]
+# Definizione dei range di valore e dei corrispondenti testi e colori
+ranges = [(-1, -0.7, 'Estremamente negativo', 'firebrick'),
+          (-0.7, -0.4, 'Negativo', 'red'),
+          (-0.4, -0.2, 'Leggermente Negativo', 'orange'),
+          (-0.2, 0.2, 'Neutro', 'lightgray'),
+          (0.2, 0.4, 'Leggermente Positivo', 'lightgreen'),
+          (0.4, 0.7, 'Positivo', 'mediumseagreen'),
+          (0.7, 1, 'Estremamente positivo', 'green')]
 
-for text in text_result:
-    sentiment_values = perform_sentiment_analysis(text)
-    sentiment_list.append(sentiment_values)
+# Trova il testo e il colore corrispondenti al valore del sentiment
+text = ''
+color = ''
+for range_ in ranges:
+    if range_[0] <= sentiment < range_[1]:
+        text = range_[2]
+        color = range_[3]
+        break
 
-st.write(sentiment_list)
+expander = st.expander("Sentiment Analysis sul tweet selezionato")
+with expander:
+    # Creazione del layout a tre colonne
+    col1, col2, col3 = st.columns([5, 1, 1])
+
+    # Colonna 1: Testo descrittivo
+    with col1:
+        st.write(f"Il sentiment rilevato per questo tweet è: {text}")
+
+    # Colonna 2: Valore numerico con colore
+    with col2:
+        rounded_sentiment = round(sentiment, 3)
+        st.write(rounded_sentiment)
+
+    # Colonna 3: Grafico
+    with col3:
+        fig, ax = plt.subplots(figsize=(4, 1))
+        ax.barh(0, sentiment, color=color, height=0.5)
+        ax.set_xlim(-1, 1)
+        ax.set_ylim(-0.5, 0.5)
+        ax.axis('off')
+        ax.axvline(x=0, color='black', linestyle='-')
+        fig.patch.set_facecolor('None')
+        ax.set_facecolor('None')
+        plt.box(False)
+        st.pyplot(fig)
+
+
+expander = st.expander("Sentiment Analysis e analitiche sui tweet che interagiscono col tweet selezionato")
+with expander:
+    # Recupero i testi dei tweet che hanno risposto o citato (senza retweet) questo tweet per una sentiment analysis 'media'
+    sentiment_list = []
+    query = f"""MATCH (u:Utente)-[r1]-(m1:Messaggio)<-[r2:ha_citato|ha_risposto]-(m2:Messaggio)
+                WHERE u.screen_name = "{selected_user}" AND m1.tweetid = "{selected_tweet}"
+                RETURN m2.text
+                """
+    query_results = conn.query(query)
+    text_result = [record['m2.text'] for record in query_results]
+
+    for text in text_result:
+        sentiment_values = perform_sentiment_analysis(text)
+        sentiment_list.append(sentiment_values)
+
+    # Creazione del layout a tre colonne
+    col1, col2, col3 = st.columns([5, 1, 1])
+    i=1
+    # Iterazione attraverso la lista dei valori sentiment
+    for sentiment in sentiment_list:
+        # Trova il testo e il colore corrispondenti al valore del sentiment
+        text = ''
+        color = ''
+        for range_ in ranges:
+            if range_[0] <= sentiment < range_[1]:
+                text = range_[2]
+                color = range_[3]
+                break
+
+        # Colonna 1: Testo descrittivo
+        with col1:
+            st.write(f"Il sentiment rilevato per il tweet {i} è: {text}")
+
+        # Colonna 2: Valore numerico con colore
+        with col2:
+            rounded_sentiment = round(sentiment, 3)
+            st.write(rounded_sentiment)
+
+        # Colonna 3: Grafico
+        with col3:
+            fig, ax = plt.subplots(figsize=(4, 1))
+            ax.barh(0, sentiment, color=color, height=0.5)
+            ax.set_xlim(-1, 1)
+            ax.set_ylim(-0.5, 0.5)
+            ax.axis('off')
+            ax.axvline(x=0, color='black', linestyle='-')
+            fig.patch.set_facecolor('None')
+            ax.set_facecolor('None')
+            plt.box(False)
+            st.pyplot(fig)
+        i += 1
+
+    st.write("------------------------------------------------------")
+    # Selettore del tweet nella sidebar
+    selected_tweet_index = st.selectbox("Seleziona un tweet per visualizzarne il testo:", range(1, len(text_result) + 1),
+                                                format_func=lambda i: f'Tweet {i}')
+    st.write(text_result[selected_tweet_index - 1])
+
+    st.write("------------------------------------------------------")
+    # Calcolo delle percentuali dei sentiment
+    sentiment_counts = np.zeros(len(ranges))
+    for sentiment in sentiment_list:
+        for i, range_ in enumerate(ranges):
+            if range_[0] <= sentiment < range_[1]:
+                sentiment_counts[i] += 1
+                break
+    total_tweets = len(sentiment_list)
+    sentiment_percentages = sentiment_counts / total_tweets
+
+    # Aerogramma delle percentuali dei sentiment
+    labels = [range_[2] for range_ in ranges]
+    colors = [range_[3] for range_ in ranges]
+    explode = [0.1] + [0] * (len(ranges) - 1)  # Esplosione della prima fetta
+
+    fig = go.Figure(data=[go.Pie(labels=labels, values=sentiment_percentages, marker=dict(colors=colors),
+                                 hoverinfo='label+percent', textinfo='percent', hole=0.4)])
+
+    st.write("**Percentuale Influencer**")
+    st.write(f"""Per le analisi effettuate, stiamo considerando un totale di {numeroTotaleUtenti}.
+                Per questi utenti abbiamo un numero di Influencer pari a {numeroInfluencer} e un numero di non Influencer pari a {numero_non_influencer}""")
+
+    # Visualizzazione del grafico su Streamlit
+    st.plotly_chart(fig, use_container_width=True)
+
+
 
 # Explicitly close the connection
 conn.close()
