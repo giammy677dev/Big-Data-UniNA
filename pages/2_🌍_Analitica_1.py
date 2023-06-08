@@ -1,12 +1,12 @@
-from utils import st, pd, conn, WordCloud, plt, openai, np
+from utils import st, conn, WordCloud, plt, openai
 import nltk
 from nltk.corpus import stopwords
 from gensim.parsing.preprocessing import STOPWORDS
 from math import floor
 import time
-import torch
 from transformers import AutoTokenizer, AutoModelForSequenceClassification, AutoConfig
 from scipy.special import softmax
+import plotly.graph_objects as go
 nltk.download('stopwords')
 
 batch_size = 5000
@@ -197,10 +197,12 @@ def chatGPT_script(selected_topic):
     response_dict["Response"].append(response)
     return response_dict
 
+
 # Crea il multiselect per selezionare i topic
 selected_topic = st.multiselect("Seleziona i topic", [topic[1] for topic in tweets_results])
 
-# Speciale effetto di scrittura chatGPT-style
+
+# Effetto di scrittura chatGPT-style
 @st.cache_data
 def type_string_GPT_style(string):
     text_placeholder = st.empty()
@@ -217,31 +219,6 @@ config = AutoConfig.from_pretrained(MODEL)
 model = AutoModelForSequenceClassification.from_pretrained(MODEL)
 
 
-# Funzione per disegnare la barra della sentiment analysis
-def draw_histogram(value):
-    st.components.v1.html(
-        f"""
-            <style>
-                #histogram-container {{
-                    width: 100%;
-                    height: 30px;
-                    border: 1px solid black;
-                    position: relative;
-                }}
-                #histogram-bar {{
-                    height: 100%;
-                    width: {((value + 1) / 2) * 100}%;
-                    background-color: blue;
-                }}
-            </style>
-            <div id="histogram-container">
-                <div id="histogram-bar"></div>
-            </div>
-            """
-    )
-
-
-# @st.cache_data
 def perform_sentiment_analysis(_text):
     # Tokenizzazione del testo di input
     input = tokenizer(_text, padding=True, truncation=True, max_length=512, return_tensors="pt")
@@ -252,7 +229,6 @@ def perform_sentiment_analysis(_text):
     # Ottieni le predizioni del modello
     scores = output[0][0].detach().numpy()
     scores = softmax(scores)
-    print(config.label2id)
 
     positive_score = float(scores[config.label2id["positive"]])
     neutral_score = float(scores[config.label2id["neutral"]])
@@ -262,22 +238,42 @@ def perform_sentiment_analysis(_text):
     return sentiment_value
 
 
-# Dividiamo in due colonne la summarization e la sentiment analysis
+sentiment_values = []
+selected_topics = []
+
+# Facciamo la summarization dei tweet e la sentiment analysis
 col1, col2 = st.columns(2)
 for topic in selected_topic:
-    with col1:
-        with st.expander(topic):
-            chatGPT_response = chatGPT_script(topic)
-            response_string = chatGPT_response["Response"][0]
-            type_string_GPT_style(response_string)
+    with st.expander(topic):
+        chatGPT_response = chatGPT_script(topic)
+        response_string = chatGPT_response["Response"][0]
+        type_string_GPT_style(response_string)
 
-    with col2:
-        for tweet, chosen_topic in tweets_results:
-            if topic == chosen_topic:
-                text = tweet
-                sentiment = perform_sentiment_analysis(text)
-                draw_histogram(sentiment)
+    for tweet, selected_topic in tweets_results:
+        if topic == selected_topic:
+            text = tweet
+            sentiment = perform_sentiment_analysis(text)
+            sentiment = round(sentiment, 2)
+            sentiment_values.append(sentiment)
+            selected_topics.append(topic)
 
+# Creazione dell'istogramma
+fig = go.Figure(data=[go.Bar(x=selected_topics, y=sentiment_values, width=0.3)])
+
+# Assegnazione del colore alle barre in base al valore
+color_scale = 'RdYlGn'  # Scala di colore da rosso a verde
+color_values = sentiment_values  # Valori dei colori corrispondenti ai valori delle barre
+fig.update_traces(marker=dict(color=color_values, colorscale=color_scale))
+
+fig.update_layout(
+    title='Sentiment Analysis',
+    xaxis_title='Selected Topics',
+    yaxis_title='Sentiment Values',
+    yaxis_range=[-1, 1]
+)
+
+# Visualizzazione del grafico
+st.plotly_chart(fig)
 
 # Explicitly close the connection
 conn.close()
