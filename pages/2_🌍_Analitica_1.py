@@ -1,8 +1,12 @@
-from utils import st, pd, conn, WordCloud, plt, openai
+from utils import st, pd, conn, WordCloud, plt, openai, np
 import nltk
 from nltk.corpus import stopwords
 from gensim.parsing.preprocessing import STOPWORDS
 from math import floor
+import time
+import torch
+from transformers import AutoTokenizer, AutoModelForSequenceClassification, AutoConfig
+from scipy.special import softmax
 nltk.download('stopwords')
 
 batch_size = 5000
@@ -124,6 +128,8 @@ query = f"""MATCH (u:Utente)-[:ha_twittato]->(m:Messaggio)
 query_results = conn.query(query)
 tweets_results = [(record['mergedText'], record['topic']) for record in query_results]
 
+
+#Se il testo supera il limite di token previsto da chatGPT, dividilo in batch
 def split_string_in_batches(stringa, batch_size):
     batches = []
     length = len(stringa)
@@ -191,24 +197,87 @@ def chatGPT_script(selected_topic):
     response_dict["Response"].append(response)
     return response_dict
 
-
-# Crea le checkbox per selezionare i topic
+# Crea il multiselect per selezionare i topic
 selected_topic = st.multiselect("Seleziona i topic", [topic[1] for topic in tweets_results])
 
-if len(selected_topic) >= 1:
-    chatGPT_response = chatGPT_script(selected_topic[len(selected_topic) - 1])
-    st.write(chatGPT_response)
-    """
-    # Aggiungi righe alla lista per ogni topic selezionato
-    for topic, value in chatGPT_response:
-        topic = chatGPT_response["Topic"][0]  # Primo elemento della riga come topic
-        value = chatGPT_response["Response"][0]  # Secondo elemento della riga come valore
-        data.append({"Topic": topic, "Valore": value})
-    # Crea un DataFrame a partire dalla lista di dati
-    table = pd.DataFrame(data)
+# Speciale effetto di scrittura chatGPT-style
+@st.cache_data
+def type_string_GPT_style(string):
+    text_placeholder = st.empty()
+    for i in range(1, len(string) + 1):
+        typed_text = string[:i]
+        text_placeholder.markdown(typed_text)
+        time.sleep(0.02)
 
-    # Mostra la tabella
-    st.table(table)
-    """
+
+# Carichiamo il tokenizer ed il modello pre-addestrato di sentiment analysis
+MODEL = f"cardiffnlp/twitter-roberta-base-sentiment-latest"
+tokenizer = AutoTokenizer.from_pretrained(MODEL)
+config = AutoConfig.from_pretrained(MODEL)
+model = AutoModelForSequenceClassification.from_pretrained(MODEL)
+
+
+# Funzione per disegnare la barra della sentiment analysis
+def draw_histogram(value):
+    st.components.v1.html(
+        f"""
+            <style>
+                #histogram-container {{
+                    width: 100%;
+                    height: 30px;
+                    border: 1px solid black;
+                    position: relative;
+                }}
+                #histogram-bar {{
+                    height: 100%;
+                    width: {((value + 1) / 2) * 100}%;
+                    background-color: blue;
+                }}
+            </style>
+            <div id="histogram-container">
+                <div id="histogram-bar"></div>
+            </div>
+            """
+    )
+
+
+# @st.cache_data
+def perform_sentiment_analysis(_text):
+    # Tokenizzazione del testo di input
+    input = tokenizer(_text, padding=True, truncation=True, max_length=512, return_tensors="pt")
+
+    # Inferenza del modello
+    output = model(**input)
+
+    # Ottieni le predizioni del modello
+    scores = output[0][0].detach().numpy()
+    scores = softmax(scores)
+    print(config.label2id)
+
+    positive_score = float(scores[config.label2id["positive"]])
+    neutral_score = float(scores[config.label2id["neutral"]])
+    negative_score = float(scores[config.label2id["negative"]])
+
+    sentiment_value = (positive_score + (neutral_score / 2)) - negative_score
+    return sentiment_value
+
+
+# Dividiamo in due colonne la summarization e la sentiment analysis
+col1, col2 = st.columns(2)
+for topic in selected_topic:
+    with col1:
+        with st.expander(topic):
+            chatGPT_response = chatGPT_script(topic)
+            response_string = chatGPT_response["Response"][0]
+            type_string_GPT_style(response_string)
+
+    with col2:
+        for tweet, chosen_topic in tweets_results:
+            if topic == chosen_topic:
+                text = tweet
+                sentiment = perform_sentiment_analysis(text)
+                draw_histogram(sentiment)
+
+
 # Explicitly close the connection
 conn.close()
