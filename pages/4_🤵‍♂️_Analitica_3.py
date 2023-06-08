@@ -1,4 +1,4 @@
-from utils import st, pd, conn, WordCloud, plt
+from utils import st, pd, conn, WordCloud, plt, AutoTokenizer, AutoModelForSequenceClassification, AutoConfig
 import nltk
 from nltk.corpus import stopwords
 from gensim.parsing.preprocessing import STOPWORDS
@@ -6,6 +6,7 @@ import plotly.graph_objects as go
 import streamlit as st
 import seaborn as sns
 import calendar
+from scipy.special import softmax
 from datetime import datetime
 
 st.set_page_config(
@@ -136,14 +137,14 @@ custom_stopwords.update(['rt', '', '&amp;', '|']) #Aggiungiamo stopwords persona
 custom_stopwords = list(custom_stopwords)
 
 query = f"""MATCH (u:Utente)-[:ha_twittato]->(m:Messaggio) WHERE u.screen_name = '{selected_user}'
-WITH m.text AS testo
-WITH testo, SPLIT(toLower(testo), ' ') AS parole
-UNWIND parole AS parola
-WITH parola, COUNT(DISTINCT testo) AS frequenza
-WHERE frequenza > 1 AND NOT parola IN {stop_words} AND NOT parola IN {custom_stopwords}
-RETURN parola, frequenza
-ORDER BY frequenza DESC
-"""
+            WITH m.text AS testo
+            WITH testo, SPLIT(toLower(testo), ' ') AS parole
+            UNWIND parole AS parola
+            WITH parola, COUNT(DISTINCT testo) AS frequenza
+            WHERE frequenza > 1 AND NOT parola IN {stop_words} AND NOT parola IN {custom_stopwords}
+            RETURN parola, frequenza
+            ORDER BY frequenza DESC
+        """
 query_results = conn.query(query)
 frequency_results = [(record['parola'], record['frequenza']) for record in query_results]
 frequency_results = [elemento for elemento in frequency_results if len(elemento) > 1]
@@ -158,14 +159,14 @@ st.pyplot(fig)
 
 st.write("--------------------")
 
-#GRAFICI TEMPORALI
+# GRAFICI TEMPORALI
 st.write("**Grafici Temporali**")
 # Prendiamo i dati utili (tempo e valore) per i grafici
 query = f"""MATCH (u:Utente)-[r]-(m:Messaggio)
-WHERE u.screen_name= "{selected_user}"
-RETURN m.date, m.followers_count, m.favourites_count
-ORDER BY m.date"""
-
+            WHERE u.screen_name= "{selected_user}"
+            RETURN m.date, m.followers_count, m.favourites_count
+            ORDER BY m.date
+        """
 query_results = conn.query(query)
 date_results = [datetime.strptime(record['m.date'], '%Y-%m-%d %H:%M:%S+00:00') for record in query_results]
 followers_results = [int(record['m.followers_count']) for record in query_results]
@@ -291,9 +292,7 @@ ax.set_ylabel('Conteggio attività', color='white')
 # Mostra il grafico su Streamlit
 st.pyplot(fig)
 
-
 st.header(f"Analitiche sui Tweet di '{selected_user}'")
-
 
 #RANKING TWEET
 st.write(f"**Ranking dei Tweet rilevanti**")
@@ -310,7 +309,7 @@ query = f"""MATCH (u:Utente)-[r1]-(m:Messaggio)<-[r2]-(m1:Messaggio)
             LIMIT {n_ranking}"""
 
 query_results = conn.query(query)
-ranking_data = [(i+1, record['m.tweetid'], record['m.text'],record['m.topic'], record['conteggio']) for i, record in enumerate(query_results)]
+ranking_data = [(i+1, record['m.tweetid'], record['m.text'], record['m.topic'], record['conteggio']) for i, record in enumerate(query_results)]
 
 # Creiamo un DataFrame pandas con i dati
 df = pd.DataFrame(ranking_data, columns=['Posizione', 'ID', 'Testo del tweet', 'Topic trattato', 'Conteggio interazioni'])
@@ -330,14 +329,50 @@ selected_text = st.selectbox(f"**Seleziona uno dei tweet della top {n_ranking}**
 # Ottieni l'ID del tweet selezionato
 selected_tweet = df[df['Testo del tweet'] == selected_text]['ID'].values[0]
 
-#SPAZIO PER SENTIMENT ANALYSIS
+# SPAZIO PER SENTIMENT ANALYSIS
+# Carichiamo il tokenizer ed il modello pre-addestrato di sentiment analysis
+MODEL = f"cardiffnlp/twitter-roberta-base-sentiment-latest"
+tokenizer = AutoTokenizer.from_pretrained(MODEL)
+config = AutoConfig.from_pretrained(MODEL)
+model = AutoModelForSequenceClassification.from_pretrained(MODEL)
 
 
-#Recupero i testi dei tweet che hanno risposto o citato (senza retweet) questo tweet per una sentiment analysis 'media'
+def perform_sentiment_analysis(_text):
+    # Tokenizzazione del testo di input
+    input = tokenizer(_text, padding=True, truncation=True, max_length=512, return_tensors="pt")
+
+    # Inferenza del modello
+    output = model(**input)
+
+    # Ottieni le predizioni del modello
+    scores = output[0][0].detach().numpy()
+    scores = softmax(scores)
+
+    positive_score = float(scores[config.label2id["positive"]])
+    neutral_score = float(scores[config.label2id["neutral"]])
+    negative_score = float(scores[config.label2id["negative"]])
+
+    sentiment_value = (positive_score + (neutral_score / 2)) - negative_score
+    return sentiment_value
+
+
+sentiment = perform_sentiment_analysis(selected_text)
+
+
+# Recupero i testi dei tweet che hanno risposto o citato (senza retweet) questo tweet per una sentiment analysis 'media'
+sentiment_list = []
 query = f"""MATCH (u:Utente)-[r1]-(m1:Messaggio)<-[r2:ha_citato|ha_risposto]-(m2:Messaggio)
             WHERE u.screen_name = "{selected_user}" AND m1.tweetid = "{selected_tweet}"
             RETURN m2.text
             """
+query_results = conn.query(query)
+text_result = [record['m2.text'] for record in query_results]
+
+for text in text_result:
+    sentiment_values = perform_sentiment_analysis(text)
+    sentiment_list.append(sentiment_values)
+
+st.write(sentiment_list)
 
 # Explicitly close the connection
 conn.close()

@@ -1,10 +1,9 @@
-from utils import st, conn, WordCloud, plt, openai
+from utils import st, conn, WordCloud, plt, openai, AutoTokenizer, AutoModelForSequenceClassification, AutoConfig
 import nltk
 from nltk.corpus import stopwords
 from gensim.parsing.preprocessing import STOPWORDS
 from math import floor
 import time
-from transformers import AutoTokenizer, AutoModelForSequenceClassification, AutoConfig
 from scipy.special import softmax
 import plotly.graph_objects as go
 nltk.download('stopwords')

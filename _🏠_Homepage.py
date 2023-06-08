@@ -1,4 +1,4 @@
-from utils import st, conn
+from utils import st
 
 st.set_page_config(
     page_title="Hello",
