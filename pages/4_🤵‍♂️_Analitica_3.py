@@ -164,7 +164,7 @@ st.write("--------------------")
 st.write("**Grafici Temporali**")
 # Prendiamo i dati utili (tempo e valore) per i grafici
 query = f"""MATCH (u:Utente)-[r]-(m:Messaggio)
-            WHERE u.screen_name= "{selected_user}"
+            WHERE u.screen_name= "{selected_user}" AND toInteger(m.followers_count) > {int(followers_results[0]) * 0.01}
             RETURN m.date, m.followers_count, m.favourites_count
             ORDER BY m.date
         """
@@ -361,8 +361,8 @@ sentiment = perform_sentiment_analysis(selected_text)
 
 
 # Definizione dei range di valore e dei corrispondenti testi e colori
-ranges = [(-1, -0.7, 'Estremamente negativo', 'firebrick'),
-          (-0.7, -0.4, 'Negativo', 'red'),
+ranges = [(-1, -0.7, 'Estremamente negativo', 'red'),
+          (-0.7, -0.4, 'Negativo', 'firebrick'),
           (-0.4, -0.2, 'Leggermente Negativo', 'orange'),
           (-0.2, 0.2, 'Neutro', 'lightgray'),
           (0.2, 0.4, 'Leggermente Positivo', 'lightgreen'),
@@ -399,7 +399,7 @@ with expander:
         ax.set_xlim(-1, 1)
         ax.set_ylim(-0.5, 0.5)
         ax.axis('off')
-        ax.axvline(x=0, color='black', linestyle='-')
+        ax.axvline(x=0, color='white', linestyle='-')
         fig.patch.set_facecolor('None')
         ax.set_facecolor('None')
         plt.box(False)
@@ -451,7 +451,7 @@ with expander:
             ax.set_xlim(-1, 1)
             ax.set_ylim(-0.5, 0.5)
             ax.axis('off')
-            ax.axvline(x=0, color='black', linestyle='-')
+            ax.axvline(x=0, color='white', linestyle='-')
             fig.patch.set_facecolor('None')
             ax.set_facecolor('None')
             plt.box(False)
