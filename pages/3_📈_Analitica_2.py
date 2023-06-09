@@ -219,7 +219,11 @@ def type_string_GPT_style(string):
         text_placeholder.markdown(typed_text)
         time.sleep(0.02)
 
+
+actual_topic = ''
+response_text = ''
 col3, col4 = st.columns(2)
+
 with col3:
     # Creazione del box di testo
     user_text = st.text_area("Inserisci il testo qui", value="", height=10)
@@ -238,9 +242,16 @@ with col3:
         text_results = []
 
 with col4:
+    if actual_topic != selected_topic:
+        response_text = ''
+        actual_topic = selected_topic
+
     if len(user_text) > 0:
-        response_text = chatGPT_script_for_text(text_results[0])
-        type_string_GPT_style(response_text)
+        if len(text_results) > 0:
+            response_text = chatGPT_script_for_text(text_results[0])
+        else:
+            response_text = "Gli utenti non hanno discusso di questo argomento."
     else:
-        response_text = "Gli utenti non hanno discusso di questo argomento."
-        type_string_GPT_style(response_text)
+        response_text = ''
+
+    type_string_GPT_style(response_text)
