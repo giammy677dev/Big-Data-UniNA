@@ -209,7 +209,7 @@ selected_topic = st.multiselect("Seleziona i topic", [topic[1] for topic in twee
 
 
 # Effetto di scrittura chatGPT-style
-@st.cache_data
+@st.cache_data(show_spinner=False)
 def type_string_GPT_style(string):
     text_placeholder = st.empty()
     for i in range(1, len(string) + 1):
