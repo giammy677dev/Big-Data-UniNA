@@ -4,12 +4,12 @@ import plotly.express as px
 from math import floor
 import time
 
-batch_size = 5000
-
 st.set_page_config(
-    page_title="Hello",
-    page_icon="👋",
+    page_title="Analitica 2 - I Topic",
+    page_icon="📈",
 )
+
+batch_size = 5000
 
 st.title('Analitiche sui Topic')
 
