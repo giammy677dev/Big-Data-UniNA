@@ -1,5 +1,3 @@
-import streamlit
-
 from utils import st, conn, WordCloud, plt, openai, AutoTokenizer, AutoModelForSequenceClassification, AutoConfig
 import nltk
 from nltk.corpus import stopwords
@@ -19,7 +17,9 @@ st.set_page_config(
 
 st.title('Analitiche sugli utenti')
 
-st.write('''In questa sezione si fanno analitiche sugli utenti''')
+st.write('''In questa sezione è possibile effettuare diverse analitiche sugli utenti. Viene prima riportata una breve
+            bio dell'utente. Successivamente, è possibile visualizzare una tag cloud che rappresenta le parole più
+            utilizzate dall'utente selezionato nei propri tweet.''')
 
 # Aggiungiamo il filtro per selezionare l'utente da visualizzare
 query = "MATCH (u:Utente) RETURN u.screen_name ORDER BY u.screen_name"
@@ -81,7 +81,7 @@ with col2:
             f'<div style="background-color: #00acee; padding: 15px; border-radius: 5px;">'
             f'<div style="display: flex; flex-direction: column; align-items: center;">'
             f'<span style="font-size: 30px;">⚠️</span>'
-            f'<p style="color: white; text-align: center;">L\'utente {selected_user} è stato moderato su YouTube. Giudicando i suoi contenuti su Twitter, l\'indice di pericolosità è tot</p>'
+            f'<p style="color: white; text-align: center;">L\'utente {selected_user} ha condiviso video che sono stati moderati su YouTube.</p>'
             f'</div>'
             f'</div>',
             unsafe_allow_html=True
@@ -127,8 +127,8 @@ st.write("---------------------------------")
 
 st.header("Summarization per topic scelti")
 
-st.write("""In questo settore è possibile scegliere uno dei topic trattati dall'utente,
-         per ottenere un summary che esprime la posizione dell'utente per il topic selezionato""")
+st.write("""In questa sezione è possibile scegliere uno dei topic trattati dall'utente per ottenere un breve riassunto
+            estratto dai tweet da lui pubblicati che esprime la posizione dell'utente per il topic selezionato.""")
 
 
 # Aggiungiamo il box per la summarization dell'utente selezionato
