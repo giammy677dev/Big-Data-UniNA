@@ -11,8 +11,8 @@ from datetime import datetime
 import numpy as np
 
 st.set_page_config(
-    page_title="Hello",
-    page_icon="👋",
+    page_title="Analitica 3 - Gli Opinion Leader",
+    page_icon="👨‍💼",
 )
 
 st.title("Analitiche sugli Opinion Leader")
@@ -34,26 +34,26 @@ WITH u, MAX(m.followers_count) AS valoreMassimo
 WHERE toInteger(valoreMassimo)> {minNumFollower}
 RETURN count(u)"""
 query_results = conn.query(query)
-numeroInfluencer = (query_results[0][0])
+numeroOpinionLeader = (query_results[0][0])
 
-numero_non_influencer = (numeroTotaleUtenti - numeroInfluencer)
+numero_non_opinionLeader = (numeroTotaleUtenti - numeroOpinionLeader)
 
 # Definisci i colori personalizzati
 colors = ['#00acee', '#ADD8E6']
 
 # Creazione del grafico ad aerogramma
 labels = ['Opinion Leader', 'Non Opinion Leader']
-values = [numeroInfluencer, numero_non_influencer]
+values = [numeroOpinionLeader, numero_non_opinionLeader]
 
 fig = go.Figure(data=[go.Pie(labels=labels, values=values, marker=dict(colors=colors))])
 
 st.header("Percentuale Opinion Leader")
-st.write(f"""Per le analisi effettuate, stiamo considerando un totale di {numeroTotaleUtenti}. Per questi utenti abbiamo un numero di Opinion Leader pari a {numeroInfluencer}""")
+st.write(f"""Per le analisi effettuate, stiamo considerando un totale di {numeroTotaleUtenti}. Per questi utenti abbiamo un numero di Opinion Leader pari a {numeroOpinionLeader}""")
 
 # Visualizzazione del grafico su Streamlit
 st.plotly_chart(fig, use_container_width=True)
 
-st.header("Analitiche sull'Influencer scelto")
+st.header("Analitiche sull'Opinion Leader scelto")
 # Aggiungiamo il filtro per selezionare l'utente da visualizzare
 query = f"""MATCH (m:Messaggio)-[r]-(u:Utente)
 WITH u, MAX(m.followers_count) AS valoreMassimo
@@ -61,7 +61,7 @@ WHERE toInteger(valoreMassimo)> {minNumFollower}
 RETURN u.screen_name ORDER BY u.screen_name"""
 query_results = conn.query(query)
 string_results = [record['u.screen_name'] for record in query_results]
-selected_user = st.selectbox('Seleziona l\'influencer:', string_results)
+selected_user = st.selectbox('Seleziona l\'Opinion Leader:', string_results)
 
 # Layout a due colonne
 col1, col2 = st.columns([3, 1])
@@ -116,7 +116,7 @@ with col2:
             f'<div style="background-color: #00acee; padding: 15px; border-radius: 5px;">'
             f'<div style="display: flex; flex-direction: column; align-items: center;">'
             f'<span style="font-size: 30px;">⚠️</span>'
-            f'<p style="color: white; text-align: center;">L\'utente {selected_user} è stato moderato su YouTube. Giudicando i suoi contenuti su Twitter, l\'indice di pericolosità è tot</p>'
+            f'<p style="color: white; text-align: center;">L\'utente {selected_user} ha condiviso video che sono stati moderati su YouTube.</p>'
             f'</div>'
             f'</div>',
             unsafe_allow_html=True
@@ -325,12 +325,14 @@ df_display = df.drop(columns=['ID'])
 st.header(f"Top {n_ranking} tweets")
 st.table(df_display)
 
+st.header("Sentiment Analysis")
+
 # Seleziona un tweet dal ranking
-selected_text = st.selectbox(f"**Seleziona uno dei tweet della top {n_ranking}**", df['Testo del tweet'])
+selected_text = st.selectbox(f"**Seleziona uno dei tweet della top {n_ranking}:**", df['Testo del tweet'])
 # Ottieni l'ID del tweet selezionato
 selected_tweet = df[df['Testo del tweet'] == selected_text]['ID'].values[0]
 
-# SPAZIO PER SENTIMENT ANALYSIS
+
 # Carichiamo il tokenizer ed il modello pre-addestrato di sentiment analysis
 MODEL = f"cardiffnlp/twitter-roberta-base-sentiment-latest"
 tokenizer = AutoTokenizer.from_pretrained(MODEL)
@@ -377,14 +379,66 @@ for range_ in ranges:
         color = range_[3]
         break
 
-expander = st.expander("Sentiment Analysis sul tweet selezionato")
-with expander:
-    # Creazione del layout a tre colonne
-    col1, col2, col3 = st.columns([5, 1, 1])
+st.write("----------------------------------------")
+st.write("**Sentiment Analysis sul tweet selezionato**")
+
+# Creazione del layout a tre colonne
+col1, col2, col3 = st.columns([5, 1, 1])
+
+# Colonna 1: Testo descrittivo
+with col1:
+    st.write(f"Il sentiment rilevato per questo tweet è: {text}")
+
+# Colonna 2: Valore numerico con colore
+with col2:
+    rounded_sentiment = round(sentiment, 3)
+    st.write(rounded_sentiment)
+
+# Colonna 3: Grafico
+with col3:
+    fig, ax = plt.subplots(figsize=(4, 1))
+    ax.barh(0, sentiment, color=color, height=0.5)
+    ax.set_xlim(-1, 1)
+    ax.set_ylim(-0.5, 0.5)
+    ax.axis('off')
+    ax.axvline(x=0, color='white', linestyle='-')
+    fig.patch.set_facecolor('None')
+    ax.set_facecolor('None')
+    plt.box(False)
+    st.pyplot(fig)
+
+st.write("--------------------------------------------------------")
+st.write("**Sentiment Analysis e analitiche dei tweet che interagiscono col tweet selezionato**")
+# Recupero i testi dei tweet che hanno risposto o citato (senza retweet) questo tweet per una sentiment analysis 'media'
+sentiment_list = []
+query = f"""MATCH (u:Utente)-[r1]-(m1:Messaggio)<-[r2:ha_citato|ha_risposto]-(m2:Messaggio)
+            WHERE u.screen_name = "{selected_user}" AND m1.tweetid = "{selected_tweet}"
+            RETURN m2.text
+            """
+query_results = conn.query(query)
+text_result = [record['m2.text'] for record in query_results]
+
+for text in text_result:
+    sentiment_values = perform_sentiment_analysis(text)
+    sentiment_list.append(sentiment_values)
+
+# Creazione del layout a tre colonne
+col1, col2, col3 = st.columns([5, 1, 1])
+i=1
+# Iterazione attraverso la lista dei valori sentiment
+for sentiment in sentiment_list:
+    # Trova il testo e il colore corrispondenti al valore del sentiment
+    text = ''
+    color = ''
+    for range_ in ranges:
+        if range_[0] <= sentiment < range_[1]:
+            text = range_[2]
+            color = range_[3]
+            break
 
     # Colonna 1: Testo descrittivo
     with col1:
-        st.write(f"Il sentiment rilevato per questo tweet è: {text}")
+        st.write(f"Il sentiment rilevato per il tweet {i} è: {text}")
 
     # Colonna 2: Valore numerico con colore
     with col2:
@@ -403,93 +457,38 @@ with expander:
         ax.set_facecolor('None')
         plt.box(False)
         st.pyplot(fig)
+    i += 1
 
+st.write("------------------------------------------------------")
+# Selettore del tweet nella sidebar
+selected_tweet_index = st.selectbox("Seleziona un tweet per visualizzarne il testo:", range(1, len(text_result) + 1),
+                                            format_func=lambda i: f'Tweet {i}')
+st.write(text_result[selected_tweet_index - 1])
 
-expander = st.expander("Sentiment Analysis e analitiche sui tweet che interagiscono col tweet selezionato")
-with expander:
-    # Recupero i testi dei tweet che hanno risposto o citato (senza retweet) questo tweet per una sentiment analysis 'media'
-    sentiment_list = []
-    query = f"""MATCH (u:Utente)-[r1]-(m1:Messaggio)<-[r2:ha_citato|ha_risposto]-(m2:Messaggio)
-                WHERE u.screen_name = "{selected_user}" AND m1.tweetid = "{selected_tweet}"
-                RETURN m2.text
-                """
-    query_results = conn.query(query)
-    text_result = [record['m2.text'] for record in query_results]
+st.write("------------------------------------------------------")
+# Calcolo delle percentuali dei sentiment
+sentiment_counts = np.zeros(len(ranges))
+for sentiment in sentiment_list:
+    for i, range_ in enumerate(ranges):
+        if range_[0] <= sentiment < range_[1]:
+            sentiment_counts[i] += 1
+            break
+total_tweets = len(sentiment_list)
+sentiment_percentages = sentiment_counts / total_tweets
 
-    for text in text_result:
-        sentiment_values = perform_sentiment_analysis(text)
-        sentiment_list.append(sentiment_values)
+# Aerogramma delle percentuali dei sentiment
+labels = [range_[2] for range_ in ranges]
+colors = [range_[3] for range_ in ranges]
+explode = [0.1] + [0] * (len(ranges) - 1)  # Esplosione della prima fetta
 
-    # Creazione del layout a tre colonne
-    col1, col2, col3 = st.columns([5, 1, 1])
-    i=1
-    # Iterazione attraverso la lista dei valori sentiment
-    for sentiment in sentiment_list:
-        # Trova il testo e il colore corrispondenti al valore del sentiment
-        text = ''
-        color = ''
-        for range_ in ranges:
-            if range_[0] <= sentiment < range_[1]:
-                text = range_[2]
-                color = range_[3]
-                break
+fig = go.Figure(data=[go.Pie(labels=labels, values=sentiment_percentages, marker=dict(colors=colors),
+                             hoverinfo='label+percent', textinfo='percent', hole=0.4)])
 
-        # Colonna 1: Testo descrittivo
-        with col1:
-            st.write(f"Il sentiment rilevato per il tweet {i} è: {text}")
+st.write("**Percentuale Opinion Leader**")
+st.write(f"""Le percentuali sono calcolate in riferimento al numero totale pari a {len(sentiment_list)}.""")
 
-        # Colonna 2: Valore numerico con colore
-        with col2:
-            rounded_sentiment = round(sentiment, 3)
-            st.write(rounded_sentiment)
-
-        # Colonna 3: Grafico
-        with col3:
-            fig, ax = plt.subplots(figsize=(4, 1))
-            ax.barh(0, sentiment, color=color, height=0.5)
-            ax.set_xlim(-1, 1)
-            ax.set_ylim(-0.5, 0.5)
-            ax.axis('off')
-            ax.axvline(x=0, color='white', linestyle='-')
-            fig.patch.set_facecolor('None')
-            ax.set_facecolor('None')
-            plt.box(False)
-            st.pyplot(fig)
-        i += 1
-
-    st.write("------------------------------------------------------")
-    # Selettore del tweet nella sidebar
-    selected_tweet_index = st.selectbox("Seleziona un tweet per visualizzarne il testo:", range(1, len(text_result) + 1),
-                                                format_func=lambda i: f'Tweet {i}')
-    st.write(text_result[selected_tweet_index - 1])
-
-    st.write("------------------------------------------------------")
-    # Calcolo delle percentuali dei sentiment
-    sentiment_counts = np.zeros(len(ranges))
-    for sentiment in sentiment_list:
-        for i, range_ in enumerate(ranges):
-            if range_[0] <= sentiment < range_[1]:
-                sentiment_counts[i] += 1
-                break
-    total_tweets = len(sentiment_list)
-    sentiment_percentages = sentiment_counts / total_tweets
-
-    # Aerogramma delle percentuali dei sentiment
-    labels = [range_[2] for range_ in ranges]
-    colors = [range_[3] for range_ in ranges]
-    explode = [0.1] + [0] * (len(ranges) - 1)  # Esplosione della prima fetta
-
-    fig = go.Figure(data=[go.Pie(labels=labels, values=sentiment_percentages, marker=dict(colors=colors),
-                                 hoverinfo='label+percent', textinfo='percent', hole=0.4)])
-
-    st.write("**Percentuale Influencer**")
-    st.write(f"""Per le analisi effettuate, stiamo considerando un totale di {numeroTotaleUtenti}.
-                Per questi utenti abbiamo un numero di Influencer pari a {numeroInfluencer} e un numero di non Influencer pari a {numero_non_influencer}""")
-
-    # Visualizzazione del grafico su Streamlit
-    st.plotly_chart(fig, use_container_width=True)
-
-
+# Visualizzazione del grafico su Streamlit
+st.plotly_chart(fig, use_container_width=True)
 
 # Explicitly close the connection
 conn.close()

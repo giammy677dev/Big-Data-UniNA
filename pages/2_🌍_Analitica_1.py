@@ -8,12 +8,12 @@ from scipy.special import softmax
 import plotly.graph_objects as go
 nltk.download('stopwords')
 
-batch_size = 5000
-
 st.set_page_config(
-    page_title="Hello",
-    page_icon="👋",
+    page_title="Analitica 1 -Gli Utenti",
+    page_icon="🌍",
 )
+
+batch_size = 5000
 
 st.title('Analitiche sugli utenti')
 
