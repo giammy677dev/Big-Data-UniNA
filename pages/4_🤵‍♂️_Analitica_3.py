@@ -359,11 +359,10 @@ def perform_sentiment_analysis(_text):
 
 sentiment = perform_sentiment_analysis(selected_text)
 
-
 # Definizione dei range di valore e dei corrispondenti testi e colori
-ranges = [(-1, -0.7, 'Estremamente negativo', 'red'),
-          (-0.7, -0.4, 'Negativo', 'firebrick'),
-          (-0.4, -0.2, 'Leggermente Negativo', 'orange'),
+ranges = [(-1, -0.7, 'Estremamente negativo', '#D10000'),
+          (-0.7, -0.4, 'Negativo', '#FF0000'),
+          (-0.4, -0.2, 'Leggermente Negativo', '#FF4242'),
           (-0.2, 0.2, 'Neutro', 'lightgray'),
           (0.2, 0.4, 'Leggermente Positivo', 'lightgreen'),
           (0.4, 0.7, 'Positivo', 'mediumseagreen'),
