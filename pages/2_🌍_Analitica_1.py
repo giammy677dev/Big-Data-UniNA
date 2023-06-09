@@ -1,3 +1,5 @@
+import streamlit
+
 from utils import st, conn, WordCloud, plt, openai, AutoTokenizer, AutoModelForSequenceClassification, AutoConfig
 import nltk
 from nltk.corpus import stopwords
@@ -120,6 +122,14 @@ fig, ax = plt.subplots()
 ax.imshow(wordcloud, interpolation='bilinear')
 ax.axis('off')
 st.pyplot(fig)
+
+st.write("---------------------------------")
+
+st.header("Summarization per topic scelti")
+
+st.write("""In questo settore è possibile scegliere uno dei topic trattati dall'utente,
+         per ottenere un summary che esprime la posizione dell'utente per il topic selezionato""")
+
 
 # Aggiungiamo il box per la summarization dell'utente selezionato
 # Selezioniamo i topic dell'utente e mergiamo i testi dei tweet relativi a quel topic
@@ -272,12 +282,15 @@ if sentiment_values:
     fig.update_traces(marker=dict(color=color_values, colorscale=color_scale))
 
     fig.update_layout(
-        title='Sentiment Analysis',
+        title = 'Grafico del Sentiment per Topic',
         xaxis_title='Topic',
         yaxis_title='Sentiment',
         yaxis_range=[-1, 1]
     )
 
+    st.write("-------------------------------------------")
+    st.header("Sentiment Analysis dei topic scelti")
+    st.write("Piccola introduzione al grafico e ai valori dei sentiment- ad esempio -1 estremo negativo e +1 estremo positivo")
     # Visualizzazione del grafico
     st.plotly_chart(fig)
 
