@@ -241,7 +241,6 @@ sentiment_values = []
 selected_topics = []
 
 # Facciamo la summarization dei tweet e la sentiment analysis
-col1, col2 = st.columns(2)
 for topic in selected_topic:
     with st.expander(topic):
         chatGPT_response = chatGPT_script(topic)
@@ -256,23 +255,24 @@ for topic in selected_topic:
             sentiment_values.append(sentiment)
             selected_topics.append(topic)
 
-# Creazione dell'istogramma
-fig = go.Figure(data=[go.Bar(x=selected_topics, y=sentiment_values, width=0.3)])
+# Creazione dell'istogramma solo se sono presenti valori di sentiment
+if sentiment_values:
+    fig = go.Figure(data=[go.Bar(x=selected_topics, y=sentiment_values, width=0.3)])
 
-# Assegnazione del colore alle barre in base al valore
-color_scale = 'RdYlGn'  # Scala di colore da rosso a verde
-color_values = sentiment_values  # Valori dei colori corrispondenti ai valori delle barre
-fig.update_traces(marker=dict(color=color_values, colorscale=color_scale))
+    # Assegnazione del colore alle barre in base al valore
+    color_scale = 'RdYlGn'  # Scala di colore da rosso a verde
+    color_values = sentiment_values  # Valori dei colori corrispondenti ai valori delle barre
+    fig.update_traces(marker=dict(color=color_values, colorscale=color_scale))
 
-fig.update_layout(
-    title='Sentiment Analysis',
-    xaxis_title='Selected Topics',
-    yaxis_title='Sentiment Values',
-    yaxis_range=[-1, 1]
-)
+    fig.update_layout(
+        title='Sentiment Analysis',
+        xaxis_title='Topic',
+        yaxis_title='Sentiment',
+        yaxis_range=[-1, 1]
+    )
 
-# Visualizzazione del grafico
-st.plotly_chart(fig)
+    # Visualizzazione del grafico
+    st.plotly_chart(fig)
 
 # Explicitly close the connection
 conn.close()
