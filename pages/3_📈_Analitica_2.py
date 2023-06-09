@@ -54,9 +54,9 @@ def perform_sentiment_analysis(_text):
 def draw_pie_chart(topic):
     # Andiamo a selezionare per ogni utente i testi inerenti al topic selezionato
     query = f"""MATCH (u:Utente)-[a:ha_twittato]->(m:Messaggio)
-                    WHERE m.topic = '{topic}'
-                    RETURN u.screen_name, 
-                    REDUCE(output = "", msg IN COLLECT(m.text) | output + " " + msg) AS combined_text
+                WHERE m.topic CONTAINS '{topic}'
+                RETURN u.screen_name, 
+                REDUCE(output = "", msg IN COLLECT(m.text) | output + " " + msg) AS combined_text
                 """
     query_results = conn.query(query)
     user_text_results = [(record['u.screen_name'], record['combined_text']) for record in query_results]
@@ -220,8 +220,6 @@ def type_string_GPT_style(string):
         time.sleep(0.02)
 
 
-actual_topic = ''
-response_text = ''
 col3, col4 = st.columns(2)
 
 with col3:
@@ -239,19 +237,15 @@ with col3:
         query_results = conn.query(query)
         text_results = [record['combined_text'] for record in query_results]
     else:
-        text_results = []
+        text_results = "NULL"
+    user_text = ''
 
 with col4:
-    if actual_topic != selected_topic:
-        response_text = ''
-        actual_topic = selected_topic
-
-    if len(user_text) > 0:
-        if len(text_results) > 0:
-            response_text = chatGPT_script_for_text(text_results[0])
-        else:
-            response_text = "Gli utenti non hanno discusso di questo argomento."
-    else:
+    if text_results[0] == "":
+        response_text = "Gli utenti non hanno discusso di questo argomento."
+    elif len(text_results) > 0 and text_results != "NULL":
+        response_text = chatGPT_script_for_text(text_results[0])
+    elif text_results == "NULL":
         response_text = ''
 
     type_string_GPT_style(response_text)
