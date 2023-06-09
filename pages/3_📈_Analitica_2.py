@@ -74,15 +74,35 @@ def draw_pie_chart(topic):
     labels = ['Sentiment Positivo', 'Sentiment Neutrale', 'Sentiment Negativo']
     values = [len(positive), len(neutral), len(negative)]
 
-    fig = px.pie(values=values, names=labels)
-    fig.update_layout(showlegend=False)
+    # Definizione dei colori per le fette
+    colors = ['green', 'lightgray', 'red']
+
+    # Creazione del grafico a torta con i colori personalizzati
+    fig = px.pie(values=values, names=labels, color_discrete_sequence=colors)
+
+    # Personalizzazione del layout
+    fig.update_layout(showlegend=False, width=300, height=300)
+
     # Modifica le etichette di hover del mouse
     fig.update_traces(hovertemplate='Categoria: %{label}')
+
+    # Visualizzazione dell'aerogramma
     st.plotly_chart(fig)
 
 
+st.write("-------------------------------------------------------------------------------")
+st.write("**Video dell'andamento dei Topic per mese e Anagramma con percentuali dei sentiment**")
+st.write("Di seguito troviamo un video grazie al quale siamo in grado di capire quali sono i topic"
+         " maggiormente discussi per ogni mese e possiamo visualizzare come, nel tempo, l'attenzione"
+         " degli utenti si è spostata da un topic all'altro. Inoltre troviamo un aerogramma che,per il topic "
+         "selezionato, mostra la percentuale dei sentiment rilevati. Questo ci permette di comprendere"
+         " meglio l'opinione generale degli utenti su un determinato topic. Per l'aerogramma sono utilizzati colori "
+         "distintivi per rappresentare i differenti sentimenti, nello specifico abbiamo il verde per il positivo, "
+         "il grigio per il neutro e, infine, il rosso per il sentiment negativo.")
+
 col1, col2 = st.columns([2, 1])
 with col1:
+    st.markdown("<br>", unsafe_allow_html=True)
     # Percorso del video del bar chart race
     video_path = "bcr.mp4"
 
@@ -143,11 +163,22 @@ def draw_histogram(topic):
         height=400  # Altezza del grafico
     )
 
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    st.write("**Grafico temporale dell'andamento del sentiment per il topic scelto**")
+
+    st.write("Attraverso questo grafico, è possibile visualizzare come cambiano i sentiment degli utenti, per un determinato topic, nel corso del tempo.")
+
     # Visualizzazione del grafico
     st.plotly_chart(fig)
 
 
 draw_histogram(selected_topic)
+
+st.write("-------------------------------")
+st.header("Summarization per keyword inserita")
+st.write("""Questa sezione ti permette di inserire una parola chiave per la quale verrà generato un summary
+        contenente la posizione dell'utente espressa nei tweet che contengono tale parola""")
 
 
 #Se il testo supera il limite di token previsto da chatGPT, dividilo in batch
