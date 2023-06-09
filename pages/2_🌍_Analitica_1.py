@@ -89,7 +89,7 @@ with col2:
     else:
         st.markdown(
             f'<div style="background-color: #00acee; padding: 15px; border-radius: 5px;">'
-            f'<p style="color: white;"> L\'utente {selected_user} non è stato moderato su YouTube. Giudicando i suoi contenuti su Twitter, l\'indice di pericolosità è tot</p>'  # INDICARE INDICE
+            f'<p style="color: white;">L\'utente {selected_user} non ha condiviso video che sono stati moderati su YouTube.</p>'  # INDICARE INDICE
             f'</div>',
             unsafe_allow_html=True
         )
