@@ -45,25 +45,29 @@ with col1:
     friends_results = [record['m.friends_count'] for record in query_results]
     statuses_results = [record['m.statuses_count'] for record in query_results]
 
-    st.write(
-        '''
-        <div style="background-color: #454545; padding: 15px; border-radius: 5px;">
-            {}
-            {}
-            {}
-            {}
-            {}
-        </div>
-        '''.format(
-            f'<p style="color: white;">⚠️ L\'utente {selected_user} non ha una descrizione</p>' if
-            description_results[0] == '' else f'<p style="color: white;"><b style="color: #00acee;">Descrizione:</b> {description_results[0]}</p>',
-            f'<p style="color: white;"><b style="color: #00acee;">Followers:</b> {followers_results[0]}</p>',
-            f'<p style="color: white;"><b style="color: #00acee;">Following:</b> {friends_results[0]}</p>',
-            f'<p style="color: white;"><b style="color: #00acee;">Numero di tweet:</b> {statuses_results[0]}</p>',
-            f'<p style="color: white;">✔️</p>' if verified_results[0] == 'True' else ''
-        ),
-        unsafe_allow_html=True
-    )
+    with st.expander("Info Box dell'utente", expanded=True):
+        if verified_results[0] == 'True':
+            col11, col12 = st.columns([1, 15])
+            with col11:
+                st.image('twitterVerifiedBadge.png', width=25)
+            with col12:
+                st.write("L'utente è verificato!")
+        st.write(
+            '''
+                {}
+                {}
+                {}
+                {}
+            '''.format(
+                f'<p style="color: white;">⚠️ L\'utente {selected_user} non ha una descrizione</p>' if
+                description_results[
+                    0] == '' else f'<p style="color: white;"><b style="color: #00acee;">Descrizione:</b> {description_results[0]}</p>',
+                f'<p style="color: white;"><b style="color: #00acee;">Followers:</b> {followers_results[0]}</p>',
+                f'<p style="color: white;"><b style="color: #00acee;">Following:</b> {friends_results[0]}</p>',
+                f'<p style="color: white;"><b style="color: #00acee;">Numero di tweet:</b> {statuses_results[0]}</p>'
+            ),
+            unsafe_allow_html=True
+        )
 
 # Aggiungiamo l'info box con le informazioni dell'utente selezionato
 with col2:
@@ -73,7 +77,10 @@ with col2:
     if string_results[0] == 'MYT':
         st.markdown(
             f'<div style="background-color: #00acee; padding: 15px; border-radius: 5px;">'
-            f'<p style="color: white;">:warning: L\'utente {selected_user} è stato moderato su YouTube. Giudicando i suoi contenuti su Twitter, l\'indice di pericolosità è tot</p>' # INDICARE INDICE
+            f'<div style="display: flex; flex-direction: column; align-items: center;">'
+            f'<span style="font-size: 30px;">⚠️</span>'
+            f'<p style="color: white; text-align: center;">L\'utente {selected_user} è stato moderato su YouTube. Giudicando i suoi contenuti su Twitter, l\'indice di pericolosità è tot</p>'
+            f'</div>'
             f'</div>',
             unsafe_allow_html=True
         )
