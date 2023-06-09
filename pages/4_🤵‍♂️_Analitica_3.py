@@ -15,12 +15,12 @@ st.set_page_config(
     page_icon="👋",
 )
 
-st.title("Analitiche sugli 'influencer'")
+st.title("Analitiche sugli Opinion Leader")
 
 minNumFollower = 50000
 
-st.write(f'''In questa sezione si fanno analitiche sugli influencer. Per 'influencer' consideriamo tutti gli 
-utenti che presentano un numero di follower pari almeno a {minNumFollower}''')
+st.write(f'''In questa sezione si fanno analitiche sugli Opinion Leader. Per Opinion Leader consideriamo tutti gli 
+utenti che presentano un numero di follower pari almeno a {minNumFollower}.''')
 
 #Query per considerare il numero totale di utenti analizzati
 query = f"""MATCH (u:Utente)
@@ -42,13 +42,13 @@ numero_non_influencer = (numeroTotaleUtenti - numeroInfluencer)
 colors = ['#00acee', '#ADD8E6']
 
 # Creazione del grafico ad aerogramma
-labels = ['Influencer', 'Non Influencer']
+labels = ['Opinion Leader', 'Non Opinion Leader']
 values = [numeroInfluencer, numero_non_influencer]
 
 fig = go.Figure(data=[go.Pie(labels=labels, values=values, marker=dict(colors=colors))])
 
-st.header("Percentuale Influencer")
-st.write(f"""Per le analisi effettuate, stiamo considerando un totale di {numeroTotaleUtenti}. Per questi utenti abbiamo un numero di Influencer pari a {numeroInfluencer} e un numero di non Influencer pari a {numero_non_influencer}""")
+st.header("Percentuale Opinion Leader")
+st.write(f"""Per le analisi effettuate, stiamo considerando un totale di {numeroTotaleUtenti}. Per questi utenti abbiamo un numero di Opinion Leader pari a {numeroInfluencer}""")
 
 # Visualizzazione del grafico su Streamlit
 st.plotly_chart(fig, use_container_width=True)
