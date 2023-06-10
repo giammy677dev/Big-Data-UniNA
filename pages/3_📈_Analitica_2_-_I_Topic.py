@@ -13,7 +13,12 @@ batch_size = 5000
 
 st.title('Analitiche sui Topic')
 
-st.write('''In questa sezione si fanno analitiche sui topic''')
+st.write("""In questa sezione è possibile visualizzare diverse analitiche sui topic. Oltre ad un bar chart race che riporta
+            l'andamento dei topic più discussi nel tempo, è possibile selezionare un topic specifico al fine di visualizzare
+            appositi grafici che riportano il sentiment generale degli utenti rispetto a quel topic. Infine, viene messo
+            a disposizione un box in cui è possibile inserire del testo tramite il quale è possibile ricevere un breve
+            riassunto delle opinioni degli utenti rispetto alle parole inserite nel box stesso.
+        """)
 
 # Aggiungiamo il filtro per selezionare i topic da visualizzare
 query = """MATCH (m:Messaggio)
@@ -91,14 +96,12 @@ def draw_pie_chart(topic):
 
 
 st.write("-------------------------------------------------------------------------------")
-st.write("**Video dell'andamento dei Topic per mese e Anagramma con percentuali dei sentiment**")
-st.write("Di seguito troviamo un video grazie al quale siamo in grado di capire quali sono i topic"
-         " maggiormente discussi per ogni mese e possiamo visualizzare come, nel tempo, l'attenzione"
-         " degli utenti si è spostata da un topic all'altro. Inoltre troviamo un aerogramma che,per il topic "
-         "selezionato, mostra la percentuale dei sentiment rilevati. Questo ci permette di comprendere"
-         " meglio l'opinione generale degli utenti su un determinato topic. Per l'aerogramma sono utilizzati colori "
-         "distintivi per rappresentare i differenti sentimenti, nello specifico abbiamo il verde per il positivo, "
-         "il grigio per il neutro e, infine, il rosso per il sentiment negativo.")
+st.write("**Bar Chart Race dei Topic ed Areogramma del sentiment**")
+st.write("""La Bar Chart Race riportata di seguito permette di visualizzare come, nel tempo, l'attenzione degli utenti
+            si è spostata da un topic all'altro. Inoltre, viene riportato un aerogramma che mostra la distribuzione percentuale
+            del sentiment rispetto al topic selezionato. Questo permette di comprendere l'opinione generale degli utenti
+            rispetto ad un determinato topic.
+         """)
 
 col1, col2 = st.columns([2, 1])
 with col1:
@@ -165,9 +168,9 @@ def draw_histogram(topic):
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    st.write("**Grafico temporale dell'andamento del sentiment per il topic scelto**")
+    st.write("**Grafico temporale dell'andamento del sentiment**")
 
-    st.write("Attraverso questo grafico, è possibile visualizzare come cambiano i sentiment degli utenti, per un determinato topic, nel corso del tempo.")
+    st.write("Il seguente grafico temporale permette di visualizzare come cambia il sentiment degli utenti nel corso del tempo rispetto al topic selezionato.")
 
     # Visualizzazione del grafico
     st.plotly_chart(fig)
@@ -176,9 +179,9 @@ def draw_histogram(topic):
 draw_histogram(selected_topic)
 
 st.write("-------------------------------")
-st.header("Summarization per keyword inserita")
-st.write("""Questa sezione ti permette di inserire una parola chiave per la quale verrà generato un summary
-        contenente la posizione dell'utente espressa nei tweet che contengono tale parola""")
+st.header("Summarization per keyword")
+st.write("""Inserendo una o più parole chiave nel box sottostante, verrà generato accanto un riassunto che esprime la
+            posizione degli utenti che hanno utilizzato tali parole chiave nei propri tweet.""")
 
 
 #Se il testo supera il limite di token previsto da chatGPT, dividilo in batch

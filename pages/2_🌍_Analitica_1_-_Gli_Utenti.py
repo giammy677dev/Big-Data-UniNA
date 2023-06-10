@@ -131,7 +131,7 @@ st.write("---------------------------------")
 st.header("Summarization per topic scelti")
 
 st.write("""In questa sezione è possibile scegliere uno dei topic trattati dall'utente per ottenere un breve riassunto
-            estratto dai tweet da lui pubblicati che esprime la posizione dell'utente per il topic selezionato.""")
+            estratto dai tweet da lui pubblicati. Tale riassunto esprime la posizione dell'utente per il topic selezionato.""")
 
 
 # Aggiungiamo il box per la summarization dell'utente selezionato

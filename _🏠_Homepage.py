@@ -32,13 +32,13 @@ elenco_bullet("Analitica 1 - Gli Utenti", """Tale sezione si focalizza sull'anal
                                             selezionare uno specifico utente e, attraverso operazioni di summarization
                                             svolte sui dati estratti dai tweet pubblicati dall'utente selezionato, è
                                             possibile comprendere opinioni e sentiment dell'utente stesso rispetto ai
-                                            topic di cui ha discusso su Twitter.""")
+                                            topic di cui ha discusso su Twitter;""")
 elenco_bullet("Analitica 2 - I Topic", """Tale sezione si focalizza sull'analisi dei topic di cui gli utenti hanno
                                         maggiormente discusso sulla piattaforma. Le analisi effettuate si focalizzano sui
                                         dati provenienti dai tweet relativi a specifici argomenti di interesse trattati,
                                         identificati considerando l'intera totalità di tweet. Inoltre, è possibile visualizzare
                                         un breve riassunto delle opinioni degli utenti rispetto ad un qualsiasi topic
-                                        appositamente inserito tramite un box di testo""")
+                                        appositamente inserito tramite un box di testo;""")
 elenco_bullet("Analitica 3 - Gli Opinion Leader", """Tale sezione si focalizza principalmente nell'identificazione dei
                                                     cosiddetti "Opinion Leader". Gli Opinion Leader sono coloro che -
                                                     tramite i proprio contenuti sulla piattaforma - hanno ottenuto molte
