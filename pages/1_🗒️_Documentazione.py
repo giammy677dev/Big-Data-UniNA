@@ -1,6 +1,11 @@
 import streamlit as st
 
-st.image("LogoUniRemakeWhite.png")
+st.set_page_config(
+    page_title="Documentazione",
+    page_icon="🗒"
+)
+
+st.image("utility/LogoUniRemakeWhite.png")
 
 st.markdown("<h3 style='text-align: center;'>Documentazione del progetto<br>di Big Data Engineering</h3>", unsafe_allow_html=True)
 

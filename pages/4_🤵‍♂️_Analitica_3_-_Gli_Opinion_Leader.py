@@ -87,7 +87,7 @@ with col1:
         if verified_results[0] == 'True':
             col11, col12 = st.columns([1, 15])
             with col11:
-                st.image('twitterVerifiedBadge.png', width=25)
+                st.image('utility/twitterVerifiedBadge.png', width=25)
             with col12:
                 st.write("L'utente è verificato!")
         st.write(
@@ -124,7 +124,7 @@ with col2:
     else:
         st.markdown(
             f'<div style="background-color: #00acee; padding: 15px; border-radius: 5px;">'
-            f'<p style="color: white;"> L\'utente {selected_user} non ha condiviso video che sono stati moderati su YouTube.</p>'  # INDICARE INDICE
+            f'<p style="color: white; text-align: center;"> L\'utente {selected_user} non ha condiviso video che sono stati moderati su YouTube.</p>'  # INDICARE INDICE
             f'</div>',
             unsafe_allow_html=True
         )

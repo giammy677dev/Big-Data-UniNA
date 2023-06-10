@@ -1,11 +1,12 @@
 from utils import st
 
 st.set_page_config(
-    page_title="TwitterAnalytics",
+    page_title="Homepage",
     page_icon="📊",
+    layout='wide'
 )
 
-st.image("copertinaHomePage.jpg")
+st.image("utility/copertinaHomePage.jpg")
 
 st.title("Dashboard Analitiche Social Network")
 st.header("Analitiche e summarization - Twitter")

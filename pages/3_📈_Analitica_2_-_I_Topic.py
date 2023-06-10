@@ -104,7 +104,7 @@ col1, col2 = st.columns([2, 1])
 with col1:
     st.markdown("<br>", unsafe_allow_html=True)
     # Percorso del video del bar chart race
-    video_path = "bcr.mp4"
+    video_path = "utility/bcr.mp4"
 
     with open(video_path, "rb") as video_file:
         video_bytes = video_file.read()
