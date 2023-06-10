@@ -10,12 +10,13 @@ st.image("utility/copertinaHomePage.jpg")
 
 st.title("Dashboard Analitiche Social Network")
 st.header("Analitiche e summarization - Twitter")
-st.write("""
-  Inserire piccola presentazione della dashboard
+st.write("""L'obiettivo di tale dashboard è quello di generare una serie di reportistiche che permettano di caratterizzare
+            gli interessi ed il tipo di contenuto pubblicato da una serie di utenti su Twitter durante il periodo compreso
+            tra giugno e dicembre del 2020.
   """)
 
 st.write("""
-      Le analitiche effettuate sono state raccolte in tre sezioni. Di seguito ne riportiamo una breve presentazione:
+      Le analitiche effettuate sono state raggruppate in tre sezioni. Di seguito ne riportiamo una breve presentazione:
       """)
 
 
