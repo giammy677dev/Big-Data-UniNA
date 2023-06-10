@@ -19,8 +19,8 @@ st.title("Analitica 3 - Gli Opinion Leader")
 
 minNumFollower = 50000
 
-st.write(f'''In questa sezione si fanno analitiche sugli Opinion Leader. Per Opinion Leader consideriamo tutti gli 
-utenti che presentano un numero di follower pari almeno a {minNumFollower}.''')
+st.write(f'''In questa sezione è possibile effettuare diverse analitiche sugli Opinion Leader. 
+             Gli Opinion Leader sono gli utenti che presentano un numero di follower superiore a {minNumFollower}.''')
 
 #Query per considerare il numero totale di utenti analizzati
 query = f"""MATCH (u:Utente)
@@ -48,12 +48,20 @@ values = [numeroOpinionLeader, numero_non_opinionLeader]
 fig = go.Figure(data=[go.Pie(labels=labels, values=values, marker=dict(colors=colors))])
 
 st.header("Percentuale Opinion Leader")
-st.write(f"""Per le analisi effettuate, stiamo considerando un totale di {numeroTotaleUtenti}. Per questi utenti abbiamo un numero di Opinion Leader pari a {numeroOpinionLeader}""")
+st.write(f"""In questa sezione è possibile visualizzare la percentuale di Opinion Leader 
+             presi in considerazione per le nostre analisi.
+             Su un totale di {numeroTotaleUtenti} utenti, 
+             gli Opinion Leader sono pari a {numeroOpinionLeader}""")
 
 # Visualizzazione del grafico su Streamlit
 st.plotly_chart(fig, use_container_width=True)
 
 st.header("Analitiche sull'Opinion Leader scelto")
+
+st.write('''In questa sezione è possibile effettuare diverse analitiche sugli Opinion Leader. Viene prima riportata una breve
+            bio dell'utente. Successivamente, è possibile visualizzare una tag cloud che rappresenta le parole più
+            utilizzate dall'utente selezionato nei propri tweet.''')
+
 # Aggiungiamo il filtro per selezionare l'utente da visualizzare
 query = f"""MATCH (m:Messaggio)-[r]-(u:Utente)
 WITH u, MAX(m.followers_count) AS valoreMassimo
@@ -165,6 +173,10 @@ st.write("--------------------")
 
 # GRAFICI TEMPORALI
 st.write("**Grafici Temporali**")
+
+st.write('''In questa sezione è possibile visualizzare andamento dei followers nel tempo, l'andamento dei likes nel tempo
+            e l'attività mensile dell'Opinion Leader selezionato.''')
+
 # Prendiamo i dati utili (tempo e valore) per i grafici
 query = f"""MATCH (u:Utente)-[r]-(m:Messaggio)
             WHERE u.screen_name= "{selected_user}" AND toInteger(m.followers_count) > {int(followers_results[0]) * 0.01}
