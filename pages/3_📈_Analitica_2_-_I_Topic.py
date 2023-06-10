@@ -79,10 +79,10 @@ def draw_pie_chart(topic):
     labels = ['Sentiment Positivo', 'Sentiment Neutrale', 'Sentiment Negativo']
     values = [len(positive), len(neutral), len(negative)]
 
-    # Definizione dei colori per le fette
+    # Definizione dei colori per aerogramma
     colors = ['green', 'lightgray', 'red']
 
-    # Creazione del grafico a torta con i colori personalizzati
+    # Creazione dell'aerogramma
     fig = px.pie(values=values, names=labels, color_discrete_sequence=colors)
 
     # Personalizzazione del layout
@@ -258,7 +258,7 @@ col3, col4 = st.columns(2)
 
 with col3:
     # Creazione del box di testo
-    user_text = st.text_area("Inserisci il testo qui", value="", height=10)
+    user_text = st.text_area("Inserisci il testo qui:", value="", height=10)
     user_text = user_text.lower()
 
     # Bottone per salvare il testo
@@ -275,6 +275,7 @@ with col3:
     user_text = ''
 
 with col4:
+    st.write("Summarization:")
     if text_results[0] == "":
         response_text = "Gli utenti non hanno discusso di questo argomento."
     elif len(text_results) > 0 and text_results != "NULL":
