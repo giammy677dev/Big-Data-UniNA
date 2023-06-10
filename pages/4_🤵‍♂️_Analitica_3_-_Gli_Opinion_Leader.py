@@ -137,13 +137,16 @@ custom_stopwords = set(STOPWORDS) #Stopwords di gensim
 custom_stopwords.update(['rt', '', '&amp;', '|']) #Aggiungiamo stopwords personalizzate
 custom_stopwords = list(custom_stopwords)
 
-query = f"""MATCH (u:Utente)-[:ha_twittato]->(m:Messaggio) WHERE u.screen_name = '{selected_user}'
+query = f"""MATCH (u:Utente)-[:ha_twittato]->(m:Messaggio)
+            WHERE u.screen_name = '{selected_user}'
             WITH m.text AS testo
             WITH testo, SPLIT(toLower(testo), ' ') AS parole
             UNWIND parole AS parola
-            WITH parola, COUNT(DISTINCT testo) AS frequenza
-            WHERE frequenza > 1 AND NOT parola IN {stop_words} AND NOT parola IN {custom_stopwords}
-            RETURN parola, frequenza
+            WITH REPLACE(REPLACE(REPLACE(parola, ':', ''), ',', ''), '.', '') AS word_without_punckt, 
+                COUNT(DISTINCT testo) AS frequenza
+            WHERE frequenza > 1 AND NOT word_without_punckt IN {stop_words} 
+                AND NOT word_without_punckt IN {custom_stopwords}
+            RETURN word_without_punckt AS parola, frequenza
             ORDER BY frequenza DESC
         """
 query_results = conn.query(query)
