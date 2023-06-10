@@ -215,7 +215,7 @@ def chatGPT_script(selected_topic):
 
 
 # Crea il multiselect per selezionare i topic
-selected_topic = st.multiselect("Seleziona i topic", [topic[1] for topic in tweets_results])
+selected_topic = st.multiselect("Seleziona i topic:", [topic[1] for topic in tweets_results])
 
 
 # Effetto di scrittura chatGPT-style
