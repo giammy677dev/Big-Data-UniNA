@@ -15,7 +15,7 @@ st.set_page_config(
     page_icon="👨‍💼",
 )
 
-st.title("Analitiche sugli Opinion Leader")
+st.title("Analitica 3 - Gli Opinion Leader")
 
 minNumFollower = 50000
 

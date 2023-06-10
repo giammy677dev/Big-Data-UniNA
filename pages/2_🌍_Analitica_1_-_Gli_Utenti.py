@@ -15,7 +15,7 @@ st.set_page_config(
 
 batch_size = 5000
 
-st.title('Analitiche sugli utenti')
+st.title('Analitica 1 - Gli Utenti')
 
 st.write('''In questa sezione è possibile effettuare diverse analitiche sugli utenti. Viene prima riportata una breve
             bio dell'utente. Successivamente, è possibile visualizzare una tag cloud che rappresenta le parole più
@@ -293,7 +293,9 @@ if sentiment_values:
 
     st.write("-------------------------------------------")
     st.header("Sentiment Analysis dei topic scelti")
-    st.write("Piccola introduzione al grafico e ai valori dei sentiment- ad esempio -1 estremo negativo e +1 estremo positivo")
+    st.write("""Di seguito viene riportato un grafico a barre verticali che rappresenta il sentiment dell'utente selezionato
+                rispetto al topic scelto. Il valore del sentiment è comrpeso tra -1 (estremo negativo) e 1 (estremo positivo).
+            """)
     # Visualizzazione del grafico
     st.plotly_chart(fig)
 

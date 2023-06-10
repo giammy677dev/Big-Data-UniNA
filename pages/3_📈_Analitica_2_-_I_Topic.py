@@ -11,7 +11,7 @@ st.set_page_config(
 
 batch_size = 5000
 
-st.title('Analitiche sui Topic')
+st.title('Analitica 2 - I Topic')
 
 st.write("""In questa sezione è possibile visualizzare diverse analitiche sui topic. Oltre ad un bar chart race che riporta
             l'andamento dei topic più discussi nel tempo, è possibile selezionare un topic specifico al fine di visualizzare
