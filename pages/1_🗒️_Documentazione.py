@@ -56,60 +56,86 @@ with st.expander("**Traccia**"):
              "(e.g., what kind of users share moderated videos, can we understand whether a "
              "video will be moderated on YouTube based on its Twitter user base).*")
 
-with st.expander("**Tecnologie Utilizzate**"):
-    st.write("Contenuto della Categoria 1")
+with st.expander("**Architettura del progetto e tecnologie utilizzate**"):
+    st.write("""Al fine di poter realizzare le analitiche riportate in questa dashboard, abbiamo innanzitutto deciso di
+                utilizzare un database a grafo per poter descrivere al meglio le relazioni che intercorrono tra i dati a
+                nostra disposizione. Un databse a grafo, infatti, risulta essere la soluzione ottimale proprio nel caso
+                in cui il dominio che si sta trattando è quello del social networking. Nel nostro caso, infatti, il database
+                a grafo ci ha permessso di individuare in modo piuttosto intuitivo (anche visivamente) le relazioni che
+                intercorrono tra i tweet pubblicati dagli utenti, le relative risposte, ricondivisioni e così via. In
+                particolare, il database a grafo da noi scelto è stato Neo4j e, per poter lavorare parallelamente al progetto,
+                abbiamo deciso di utilizzare il servizio AuraDB messo a dsposizione da Neo4j stesso. Tale tecnologia permette
+                di avere a disposizione un server remoto su cui caricare il proprio database a grafo. In questo modo, dunque,
+                il database è sempre accessibile ed è possibile accedervi e lavorarci direttamente dall'applicazione di
+                Neo4j Desktop come se il database fosse disponibile in locale.
+                Per quanto riguarda lo sviluppo del codice, invece, il linguaggio di programmazione utilizzato è stato Python.
+                Abbiamo effettuato staging del codice su GitHub in modo da sfruttare tutti i vantaggi di un sistema di
+                version control.
+                Tra le librerie più importanti utilizzate per la realizzazione del progetto ricordiamo:
+                """)
+    elenco_bullet("OpenAI", "tale libreria, tramite l'utilizzo di apposite API, consente di avere accesso al chatbot ChatGPT;")
+    elenco_bullet("Gensim", """tale libreria è stata utilizzata per poter addestrare l'algoritmo Latent Dirichlet Allocation
+                            (LDA). Tale algoritmo è di tipo non supervisionato ed effettua topic detection. Abbiamo deciso
+                            di utilizzare tale algoritmo e non un modello pre-addestrato in quanto un modello pre-addestrato
+                            non avrebbe potuto ottenere prestazioni soddisfacenti con tweet molto specifici come quelli
+                            a nostra disposizione;""")
+    elenco_bullet("HuggingFace", """tale libreria è stata utilizzata per effettuare la sentiment analysis sui tweet condivisi"
+                                 dagli utenti;""")
+    elenco_bullet("Streamlit", "tale libreria ha semplificato la realizzazione della dashboard stessa.")
+    st.write("""L'IDE utilizzato è PyCharm, il quale permette una semplice installazione e gestione di tutte le librerie
+                utilizzate.
+                """)
 
-with st.expander("**Presentazione del dataset e Preprocessing**"):
+with st.expander("**Presentazione del dataset e Pre-processing**"):
     st.write("""
            Il dataset su cui sono state realizzate le analitiche raccolgono una serie di tweet riguardanti le elezioni presidenziali americane del 2020. 
            Tale dataset è stato lavorato andando a rimuovere i campi che non fornivano alcun contributo informativo (colonne costituite da tutti valori uguali, colonne costituite da molti valori nulli e così via).
            Il dataset su cui abbiamo realizzato le analitiche risulta essere caratterizzato dai seguenti campi:
              """)
-    elenco_bullet("tweetid", "ID del tweet")
-    elenco_bullet("userid", "ID dell'utente che ha pubblicato il tweet")
-    elenco_bullet("screen_name", "nickname dell'utente che ha pubblicato il tweet")
-    elenco_bullet("date", "data e ora in cui è stato pubblicato il tweet")
-    elenco_bullet("lang", "lingua del tweet")
-    elenco_bullet("description", "biografia dell'utente che ha pubblicato il tweet")
-    elenco_bullet("text", "testo del tweet")
-    elenco_bullet("reply_userid", "ID dell'utente del tweet a cui si sta rispondendo")
-    elenco_bullet("reply_screen_name", "nickname dell'utente del tweet a cui si sta rispondendo")
-    elenco_bullet("reply_statusid", "ID del tweet a cui si sta rispondendo")
-    elenco_bullet("tweet_type", "tipologia di tweet (ad esempio originale, retweet, citazione o risposta)")
-    elenco_bullet("friends_count", "numero di utenti seguiti dall'utente")
-    elenco_bullet("followers_count", "numero di follower dell'utente")
-    elenco_bullet("favourites_count", "numero di like dell'utente")
-    elenco_bullet("statuses_count", "numero totale di tweet pubblicati dall'utente")
-    elenco_bullet("verified", "definisce se l'account dell'utente è verificato su Twitter")
-    elenco_bullet("hashtag", "hashtag presenti nel tweet")
-    elenco_bullet("urls_list", "URL presenti nel tweet")
-    elenco_bullet("display_name", "nome dell'utente")
-    elenco_bullet("rt_urls_list", "URL presenti nel messaggio che è stato ritwittato")
-    elenco_bullet("mentionid", "ID degli utenti menzionati nel tweet")
-    elenco_bullet("mentionsn", "nickname degli utenti menzionati nel tweet")
-    elenco_bullet("rt_screen", "nickname dell'utente del messaggio che è stato ritwittato")
-    elenco_bullet("rt_userid", "ID dell'utente del messaggio che è stato ritwittato")
-    elenco_bullet("rt_user_description", "biografia dell'utente del messaggio che è stato ritwittato")
-    elenco_bullet("rt_text", "testo del messaggio che è stato ritwittato.")
-    elenco_bullet("rt_hashtag", "hashtag presenti nel messaggio che è stato ritwittato")
-    elenco_bullet("rt_qtd_count", "numero di volte in cui il messaggio ritwittato è stato citato")
-    elenco_bullet("rt_rt_count", "numero di volte in cui il messaggio ritwittato è stato ritwittato")
-    elenco_bullet("rt_reply_count", "numero di risposte ricevute dal messaggio che è stato ritwittato")
-    elenco_bullet("rt_fav_count", "numero di volte in cui il messaggio che è stato è stato aggiunto ai preferiti")
-    elenco_bullet("rt_tweetid", "ID del messaggio che è stato ritwittato")
-    elenco_bullet("qtd_screen", "nickname dell'utente del messaggio che è stato citato")
-    elenco_bullet("qtd_userid", "ID dell'utente del messaggio che è stato citato")
-    elenco_bullet("qtd_user_description", "biografia dell'utente del messaggio che è stato citato")
-    elenco_bullet("qtd_text", "testo del messaggio che è stato citato")
-    elenco_bullet("qtd_hashtag", "hashtag presenti nel messaggio che è stato citato")
-    elenco_bullet("qtd_qtd_count", "numero di volte in cui il messaggio citato è stato citato")
-    elenco_bullet("qtd_rt_count", "numero di volte in cui il messaggio citato è stata retwittato")
-    elenco_bullet("qtd_reply_count", "numero di risposte ricevute dal messaggio citato")
-    elenco_bullet("qtd_fav_count", "numero di volte in cui il messaggio citato è stata aggiunto ai preferiti.")
-    elenco_bullet("qtd_tweetid", "ID del tweet che è stato citato")
-    elenco_bullet("qtd_urls_list", "URL presenti nel messaggio citato")
-    elenco_bullet("media_urls", "URL multimediali presenti nel tweet")
-    elenco_bullet("rt_media_urls", "URL multimediali presenti nel messaggio ritwittato")
-    elenco_bullet("q_media_urls", "URL multimediali presenti nel messaggio citato")
-    elenco_bullet("cat", "definisce se l'utente ha condiviso su Twitter dei video che sono stati moderati da Youtube")
-
+    elenco_bullet("tweetid", "ID del tweet;")
+    elenco_bullet("userid", "ID dell'utente che ha pubblicato il tweet;")
+    elenco_bullet("screen_name", "nickname dell'utente che ha pubblicato il tweet;")
+    elenco_bullet("date", "data e ora in cui è stato pubblicato il tweet;")
+    elenco_bullet("lang", "lingua del tweet;")
+    elenco_bullet("description", "biografia dell'utente che ha pubblicato il tweet;")
+    elenco_bullet("text", "testo del tweet;")
+    elenco_bullet("reply_userid", "ID dell'utente del tweet a cui si sta rispondendo;")
+    elenco_bullet("reply_screen_name", "nickname dell'utente del tweet a cui si sta rispondendo;")
+    elenco_bullet("reply_statusid", "ID del tweet a cui si sta rispondendo;")
+    elenco_bullet("tweet_type", "tipologia di tweet (ad esempio originale, retweet, citazione o risposta);")
+    elenco_bullet("friends_count", "numero di utenti seguiti dall'utente;")
+    elenco_bullet("followers_count", "numero di follower dell'utente;")
+    elenco_bullet("favourites_count", "numero di like dell'utente;")
+    elenco_bullet("statuses_count", "numero totale di tweet pubblicati dall'utente;")
+    elenco_bullet("verified", "definisce se l'account dell'utente è verificato su Twitter;")
+    elenco_bullet("hashtag", "hashtag presenti nel tweet;")
+    elenco_bullet("urls_list", "URL presenti nel tweet;")
+    elenco_bullet("display_name", "nome dell'utente;")
+    elenco_bullet("rt_urls_list", "URL presenti nel messaggio che è stato ritwittato;")
+    elenco_bullet("mentionid", "ID degli utenti menzionati nel tweet;")
+    elenco_bullet("mentionsn", "nickname degli utenti menzionati nel tweet;")
+    elenco_bullet("rt_screen", "nickname dell'utente del messaggio che è stato ritwittato;")
+    elenco_bullet("rt_userid", "ID dell'utente del messaggio che è stato ritwittato;")
+    elenco_bullet("rt_user_description", "biografia dell'utente del messaggio che è stato ritwittato;")
+    elenco_bullet("rt_text", "testo del messaggio che è stato ritwittato;")
+    elenco_bullet("rt_hashtag", "hashtag presenti nel messaggio che è stato ritwittato;")
+    elenco_bullet("rt_qtd_count", "numero di volte in cui il messaggio ritwittato è stato citato;")
+    elenco_bullet("rt_rt_count", "numero di volte in cui il messaggio ritwittato è stato ritwittato;")
+    elenco_bullet("rt_reply_count", "numero di risposte ricevute dal messaggio che è stato ritwittato;")
+    elenco_bullet("rt_fav_count", "numero di volte in cui il messaggio che è stato è stato aggiunto ai preferiti;")
+    elenco_bullet("rt_tweetid", "ID del messaggio che è stato ritwittato;")
+    elenco_bullet("qtd_screen", "nickname dell'utente del messaggio che è stato citato;")
+    elenco_bullet("qtd_userid", "ID dell'utente del messaggio che è stato citato;")
+    elenco_bullet("qtd_user_description", "biografia dell'utente del messaggio che è stato citato;")
+    elenco_bullet("qtd_text", "testo del messaggio che è stato citato;")
+    elenco_bullet("qtd_hashtag", "hashtag presenti nel messaggio che è stato citato;")
+    elenco_bullet("qtd_qtd_count", "numero di volte in cui il messaggio citato è stato citato;")
+    elenco_bullet("qtd_rt_count", "numero di volte in cui il messaggio citato è stata retwittato;")
+    elenco_bullet("qtd_reply_count", "numero di risposte ricevute dal messaggio citato;")
+    elenco_bullet("qtd_fav_count", "numero di volte in cui il messaggio citato è stata aggiunto ai preferiti;")
+    elenco_bullet("qtd_tweetid", "ID del tweet che è stato citato;")
+    elenco_bullet("qtd_urls_list", "URL presenti nel messaggio citato;")
+    elenco_bullet("media_urls", "URL multimediali presenti nel tweet;")
+    elenco_bullet("rt_media_urls", "URL multimediali presenti nel messaggio ritwittato;")
+    elenco_bullet("q_media_urls", "URL multimediali presenti nel messaggio citato;")
+    elenco_bullet("cat", "definisce se l'utente ha condiviso su Twitter dei video che sono stati moderati da Youtube.")
