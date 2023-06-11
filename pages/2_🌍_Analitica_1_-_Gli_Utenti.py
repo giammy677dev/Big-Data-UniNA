@@ -20,7 +20,7 @@ st.write('''In questa sezione è possibile effettuare diverse analitiche sugli u
 query = "MATCH (u:Utente) RETURN u.screen_name ORDER BY u.screen_name"
 query_results = conn.query(query)
 string_results = [record['u.screen_name'] for record in query_results]
-selected_user = st.selectbox('Seleziona l\'utente:', string_results)
+selected_user = st.selectbox('Seleziona l\'utente:', string_results, index=11)
 
 # Layout a due colonne
 col1, col2 = st.columns([3, 1])
