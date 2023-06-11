@@ -3,36 +3,39 @@ import nltk
 from nltk.corpus import stopwords
 from gensim.parsing.preprocessing import STOPWORDS
 import plotly.graph_objects as go
-import streamlit as st
 import seaborn as sns
 import calendar
 from scipy.special import softmax
 from datetime import datetime
 import numpy as np
 
+minNumFollower = 50000
+
 st.set_page_config(
     page_title="Analitica 3 - Gli Opinion Leader",
     page_icon="👨‍💼",
 )
 
-st.title("Analitica 3 - Gli Opinion Leader")
+st.title("👨‍💼 Analitica 3 - Gli Opinion Leader")
 
-minNumFollower = 50000
-
-st.write(f'''In questa sezione è possibile effettuare diverse analitiche sugli Opinion Leader. 
-             Gli Opinion Leader sono gli utenti che presentano un numero di follower superiore a {minNumFollower}.''')
+st.write(f"""In questa sezione è possibile effettuare diverse analitiche sugli Opinion Leader. Gli Opinion Leader sono
+            coloro che - tramite i proprio contenuti sulla piattaforma - hanno raggiunto un vasto pubblico di utenti. In
+            particolare, al fine di effettuare le analitiche riportate di seguito, abbiamo considerato Opinion Leader
+            tutti gli utenti che presentano un numero di follower superiore a {minNumFollower}.""")
 
 #Query per considerare il numero totale di utenti analizzati
 query = f"""MATCH (u:Utente)
-RETURN count(u)"""
+            RETURN count(u)
+        """
 query_results = conn.query(query)
 numeroTotaleUtenti = (query_results[0][0])
 
 #Query per considerare il numero totale di utenti analizzati
 query = f"""MATCH (m:Messaggio)-[r]-(u:Utente)
-WITH u, MAX(m.followers_count) AS valoreMassimo
-WHERE toInteger(valoreMassimo)> {minNumFollower}
-RETURN count(u)"""
+            WITH u, MAX(m.followers_count) AS valoreMassimo
+            WHERE toInteger(valoreMassimo)> {minNumFollower}
+            RETURN count(u)
+        """
 query_results = conn.query(query)
 numeroOpinionLeader = (query_results[0][0])
 
@@ -48,25 +51,25 @@ values = [numeroOpinionLeader, numero_non_opinionLeader]
 fig = go.Figure(data=[go.Pie(labels=labels, values=values, marker=dict(colors=colors))])
 
 st.header("Percentuale Opinion Leader")
-st.write(f"""In questa sezione è possibile visualizzare la percentuale di Opinion Leader 
-             presi in considerazione per le nostre analisi.
-             Su un totale di {numeroTotaleUtenti} utenti, 
-             gli Opinion Leader sono pari a {numeroOpinionLeader}""")
+st.write(f"""Di seguito viene, innanzitutto, riportata la percentuale di Opinion Leader rispetto al numero totale di utenti.
+             In particolare, un totale di {numeroTotaleUtenti} utenti, gli Opinion Leader sono pari a {numeroOpinionLeader}.""")
 
 # Visualizzazione del grafico su Streamlit
 st.plotly_chart(fig, use_container_width=True)
 
 st.header("Analitiche sull'Opinion Leader scelto")
 
-st.write('''In questa sezione è possibile effettuare diverse analitiche sugli Opinion Leader. Viene prima riportata una breve
-            bio dell'utente. Successivamente, è possibile visualizzare una tag cloud che rappresenta le parole più
-            utilizzate dall'utente selezionato nei propri tweet.''')
+st.write("""In questa sezione è possibile selezionare un Opinion Leader su cui si vogliono focalizzare le analitiche
+            successive. Viene, dunque, riportata una breve bio dell'Opinion Leader selezionato. Inoltre, è possibile
+            visualizzare una tag cloud che rappresenta le parole più utilizzate dall'utente selezionato nei propri tweet.
+            """)
 
 # Aggiungiamo il filtro per selezionare l'utente da visualizzare
 query = f"""MATCH (m:Messaggio)-[r]-(u:Utente)
-WITH u, MAX(m.followers_count) AS valoreMassimo
-WHERE toInteger(valoreMassimo)> {minNumFollower}
-RETURN u.screen_name ORDER BY u.screen_name"""
+            WITH u, MAX(m.followers_count) AS valoreMassimo
+            WHERE toInteger(valoreMassimo)> {minNumFollower}
+            RETURN u.screen_name ORDER BY u.screen_name
+        """
 query_results = conn.query(query)
 string_results = [record['u.screen_name'] for record in query_results]
 selected_user = st.selectbox('Seleziona l\'Opinion Leader:', string_results)
@@ -174,8 +177,9 @@ st.write("--------------------")
 # GRAFICI TEMPORALI
 st.write("**Grafici Temporali**")
 
-st.write('''In questa sezione è possibile visualizzare andamento dei followers nel tempo, l'andamento dei likes nel tempo
-            e l'attività mensile dell'Opinion Leader selezionato.''')
+st.write("""In questa sezione è possibile visualizzare l'andamento dei followers e dei likes nel tempo, oltre all'attività
+            mensile sulla piattaforma dell'Opinion Leader selezionato.
+        """)
 
 # Prendiamo i dati utili (tempo e valore) per i grafici
 query = f"""MATCH (u:Utente)-[r]-(m:Messaggio)
@@ -228,7 +232,6 @@ fig2.update_layout(
 )
 
 st.plotly_chart(fig1)
-
 st.plotly_chart(fig2)
 
 st.write("--------------------")
@@ -237,10 +240,11 @@ st.write("--------------------")
 st.write("**Attività mensile dell'utente**")
 # Prendiamo i dati utili (tempo e valore) per l'istogramma a barre verticali
 query = f"""MATCH (u:Utente)-[r]-(m:Messaggio)
-WHERE u.screen_name = "{selected_user}"
-WITH m, substring(m.date, 5, 2) AS month, substring(m.date, 0, 4) AS year
-RETURN year, month, count(m) AS messageCount
-ORDER BY year, month"""
+            WHERE u.screen_name = "{selected_user}"
+            WITH m, substring(m.date, 5, 2) AS month, substring(m.date, 0, 4) AS year
+            RETURN year, month, count(m) AS messageCount
+            ORDER BY year, month
+        """
 
 query_results = conn.query(query)
 month_results = [f"{record['year']}-{record['month']}" for record in query_results]
@@ -311,18 +315,19 @@ st.pyplot(fig)
 st.header(f"Analitiche sui Tweet di '{selected_user}'")
 
 #RANKING TWEET
-st.write(f"**Ranking dei Tweet rilevanti**")
-st.write("Per identificare i tweet più rilevanti per questo ranking, si fa riferimento ai tweet col maggior numero di interazioni, considerando numero di retweet, numero di quoted tweet e numero di risposte associati, per ogni tweet.")
+st.write(f"**Tweet più rilevanti**")
+st.write("I tweet più rilevanti sono quelli col maggior numero di interazioni (tra cui retweet, citazioni e risposte ricevute).")
 
 # Inserisci il numero di tweet da considerare per il ranking
-n_ranking = st.slider("Seleziona il numero di tweet per il ranking", 1, 10, 3)
+n_ranking = st.slider("Seleziona il numero di tweet che vuoi visualizzare:", 1, 10, 3)
 
 # Prendiamo i dati utili per il ranking
 query = f"""MATCH (u:Utente)-[r1]-(m:Messaggio)<-[r2]-(m1:Messaggio)
             WHERE u.screen_name = "{selected_user}"
             RETURN m.tweetid, m.text, m.topic, count(m) as conteggio
             ORDER BY count(m) DESC
-            LIMIT {n_ranking}"""
+            LIMIT {n_ranking}
+        """
 
 query_results = conn.query(query)
 ranking_data = [(i+1, record['m.tweetid'], record['m.text'], record['m.topic'], record['conteggio']) for i, record in enumerate(query_results)]
@@ -341,6 +346,11 @@ st.header(f"Top {n_ranking} tweets")
 st.table(df_display)
 
 st.header("Sentiment Analysis")
+st.write("""In questa sezione è possibile visualizzare una serie di analitiche relative al sentiment generato dai top tweet
+            dell'Opinion Leader selezionato. Inoltre, è possibile visualizzare anche il sentiment espresso dai tweet degli
+            utenti che hanno interagito col tweet dell'Opinion Leader selezionato.
+        """)
+
 
 # Seleziona un tweet dal ranking
 selected_text = st.selectbox(f"**Seleziona uno dei tweet della top {n_ranking}:**", df['Testo del tweet'])
@@ -499,8 +509,10 @@ explode = [0.1] + [0] * (len(ranges) - 1)  # Esplosione della prima fetta
 fig = go.Figure(data=[go.Pie(labels=labels, values=sentiment_percentages, marker=dict(colors=colors),
                              hoverinfo='label+percent', textinfo='percent', hole=0.4)])
 
-st.write("**Percentuale Opinion Leader**")
-st.write(f"""Le percentuali sono calcolate in riferimento al numero totale pari a {len(sentiment_list)}.""")
+st.write("**Areogramma del sentiment generato dal tweet dell'Opinion Leader**")
+st.write(f"""Di seguito viene riportato un areogramma che mostra, in percentuale, il sentiment generato dal tweet dell'
+            Opinion Leader selezionato.
+        """)
 
 # Visualizzazione del grafico su Streamlit
 st.plotly_chart(fig, use_container_width=True)
