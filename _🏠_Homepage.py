@@ -1,4 +1,4 @@
-from utils import st
+from utils import st, elenco_bullet
 
 st.set_page_config(
     page_title="Homepage",
@@ -18,12 +18,6 @@ st.write("""L'obiettivo di tale dashboard è quello di generare una serie di rep
 st.write("""
       Le analitiche effettuate sono state raggruppate in tre sezioni. Di seguito ne riportiamo una breve presentazione:
       """)
-
-
-# Elenco con bullet list e link ai collegamenti delle sezioni
-def elenco_bullet(testo_grassetto, testo_normale):
-    st.markdown(f"- <span style='color:#00acee'><b>{testo_grassetto}</b></span>: {testo_normale}",
-                unsafe_allow_html=True)
 
 
 # Esempio di utilizzo

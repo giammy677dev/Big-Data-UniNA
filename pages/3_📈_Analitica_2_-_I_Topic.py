@@ -1,15 +1,12 @@
-from utils import st, conn, pd, openai, AutoTokenizer, AutoModelForSequenceClassification, AutoConfig
-from scipy.special import softmax
+from utils import st, conn, pd, openai, floor
+from utils import time, batch_size
+from utils import split_string_in_batches, perform_sentiment_analysis
 import plotly.express as px
-from math import floor
-import time
 
 st.set_page_config(
     page_title="Analitica 2 - I Topic",
     page_icon="📈",
 )
-
-batch_size = 5000
 
 st.title('📈 Analitica 2 - I Topic')
 
@@ -29,32 +26,8 @@ query_results = conn.query(query)
 string_results = [record['topic'] for record in query_results]
 selected_topic = st.selectbox('Seleziona il topic:', string_results)
 
+
 # Sentiment analysis
-# Carichiamo il tokenizer ed il modello pre-addestrato di sentiment analysis
-MODEL = f"cardiffnlp/twitter-roberta-base-sentiment-latest"
-tokenizer = AutoTokenizer.from_pretrained(MODEL)
-config = AutoConfig.from_pretrained(MODEL)
-model = AutoModelForSequenceClassification.from_pretrained(MODEL)
-
-def perform_sentiment_analysis(_text):
-    # Tokenizzazione del testo di input
-    input = tokenizer(_text, padding=True, truncation=True, max_length=512, return_tensors="pt")
-
-    # Inferenza del modello
-    output = model(**input)
-
-    # Ottieni le predizioni del modello
-    scores = output[0][0].detach().numpy()
-    scores = softmax(scores)
-
-    positive_score = float(scores[config.label2id["positive"]])
-    neutral_score = float(scores[config.label2id["neutral"]])
-    negative_score = float(scores[config.label2id["negative"]])
-
-    sentiment_value = (positive_score + (neutral_score / 2)) - negative_score
-    return sentiment_value
-
-
 @st.cache_data(show_spinner=False)
 def draw_pie_chart(topic):
     # Andiamo a selezionare per ogni utente i testi inerenti al topic selezionato
@@ -182,25 +155,6 @@ st.write("-------------------------------")
 st.header("Summarization per keyword")
 st.write("""Inserendo una o più parole chiave nel box sottostante, verrà generato accanto un riassunto che esprime la
             posizione degli utenti che hanno utilizzato tali parole chiave nei propri tweet.""")
-
-
-#Se il testo supera il limite di token previsto da chatGPT, dividilo in batch
-def split_string_in_batches(stringa, batch_size):
-    batches = []
-    length = len(stringa)
-    start_index = 0
-    end_index = batch_size
-
-    while start_index < length:
-        if end_index >= length:
-            end_index = length
-
-        batch = stringa[start_index:end_index]
-        batches.append(batch)
-
-        start_index = end_index
-        end_index += batch_size
-    return batches
 
 
 def chatGPT_request(text):

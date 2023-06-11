@@ -1,13 +1,10 @@
-from utils import st, pd, conn, WordCloud, plt, AutoTokenizer, AutoModelForSequenceClassification, AutoConfig
-import nltk
-from nltk.corpus import stopwords
-from gensim.parsing.preprocessing import STOPWORDS
-import plotly.graph_objects as go
+from utils import st, pd, conn, WordCloud, plt
+from utils import np, stop_words, custom_stopwords, ranges, month_abbreviations
+from utils import perform_sentiment_analysis
 import seaborn as sns
 import calendar
-from scipy.special import softmax
 from datetime import datetime
-import numpy as np
+import plotly.graph_objects as go
 
 minNumFollower = 50000
 
@@ -143,11 +140,6 @@ with col2:
 st.markdown("\n\n")
 
 # Aggiungiamo la tag cloud per l'utente selezionato
-stop_words = stopwords.words('english') #Stopwords di nltk
-custom_stopwords = set(STOPWORDS) #Stopwords di gensim
-custom_stopwords.update(['rt', '', '&amp;', '|']) #Aggiungiamo stopwords personalizzate
-custom_stopwords = list(custom_stopwords)
-
 query = f"""MATCH (u:Utente)-[:ha_twittato]->(m:Messaggio)
             WHERE u.screen_name = '{selected_user}'
             WITH m.text AS testo
@@ -253,22 +245,6 @@ count_result = [record['messageCount'] for record in query_results]
 # Ottenere i nomi dei mesi e degli anni corrispondenti ai numeri
 month_names = [f"{calendar.month_name[int(month.split('-')[1])]} {month.split('-')[0]}" for month in month_results]
 
-# Dizionario per la mappatura dei nomi completi dei mesi alle forme abbreviate
-month_abbreviations = {
-    'January': 'Jan',
-    'February': 'Feb',
-    'March': 'Mar',
-    'April': 'Apr',
-    'May': 'May',
-    'June': 'Jun',
-    'July': 'Jul',
-    'August': 'Aug',
-    'September': 'Sep',
-    'October': 'Oct',
-    'November': 'Nov',
-    'December': 'Dec'
-}
-
 # Converti i nomi completi dei mesi nelle forme abbreviate
 month_names = [month_abbreviations.get(month.split(' ')[0], month.split(' ')[0]) + ' ' + month.split(' ')[1] for month in month_names]
 
@@ -314,7 +290,7 @@ st.pyplot(fig)
 
 st.header(f"Analitiche sui Tweet di '{selected_user}'")
 
-#RANKING TWEET
+# Tweet ranking
 st.write(f"**Tweet più rilevanti**")
 st.write("I tweet più rilevanti sono quelli col maggior numero di interazioni (tra cui retweet, citazioni e risposte ricevute).")
 
@@ -357,43 +333,7 @@ selected_text = st.selectbox(f"**Seleziona uno dei tweet della top {n_ranking}:*
 # Ottieni l'ID del tweet selezionato
 selected_tweet = df[df['Testo del tweet'] == selected_text]['ID'].values[0]
 
-
-# Carichiamo il tokenizer ed il modello pre-addestrato di sentiment analysis
-MODEL = f"cardiffnlp/twitter-roberta-base-sentiment-latest"
-tokenizer = AutoTokenizer.from_pretrained(MODEL)
-config = AutoConfig.from_pretrained(MODEL)
-model = AutoModelForSequenceClassification.from_pretrained(MODEL)
-
-
-def perform_sentiment_analysis(_text):
-    # Tokenizzazione del testo di input
-    input = tokenizer(_text, padding=True, truncation=True, max_length=512, return_tensors="pt")
-
-    # Inferenza del modello
-    output = model(**input)
-
-    # Ottieni le predizioni del modello
-    scores = output[0][0].detach().numpy()
-    scores = softmax(scores)
-
-    positive_score = float(scores[config.label2id["positive"]])
-    neutral_score = float(scores[config.label2id["neutral"]])
-    negative_score = float(scores[config.label2id["negative"]])
-
-    sentiment_value = (positive_score + (neutral_score / 2)) - negative_score
-    return sentiment_value
-
-
 sentiment = perform_sentiment_analysis(selected_text)
-
-# Definizione dei range di valore e dei corrispondenti testi e colori
-ranges = [(-1, -0.7, 'Estremamente negativo', '#D10000'),
-          (-0.7, -0.4, 'Negativo', '#FF0000'),
-          (-0.4, -0.2, 'Leggermente Negativo', '#FF4242'),
-          (-0.2, 0.2, 'Neutro', 'lightgray'),
-          (0.2, 0.4, 'Leggermente Positivo', 'lightgreen'),
-          (0.4, 0.7, 'Positivo', 'mediumseagreen'),
-          (0.7, 1, 'Estremamente positivo', 'green')]
 
 # Trova il testo e il colore corrispondenti al valore del sentiment
 text = ''
@@ -449,7 +389,7 @@ for text in text_result:
 
 # Creazione del layout a tre colonne
 col1, col2, col3 = st.columns([5, 1, 1])
-i=1
+i = 1
 # Iterazione attraverso la lista dei valori sentiment
 for sentiment in sentiment_list:
     # Trova il testo e il colore corrispondenti al valore del sentiment

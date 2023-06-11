@@ -1,10 +1,7 @@
-from utils import st, conn, WordCloud, plt, openai, AutoTokenizer, AutoModelForSequenceClassification, AutoConfig
+from utils import st, conn, WordCloud, plt, openai
+from utils import floor, time, batch_size, stop_words, custom_stopwords, ranges
+from utils import split_string_in_batches, perform_sentiment_analysis
 import nltk
-from nltk.corpus import stopwords
-from gensim.parsing.preprocessing import STOPWORDS
-from math import floor
-import time
-from scipy.special import softmax
 import plotly.graph_objects as go
 nltk.download('stopwords')
 
@@ -12,8 +9,6 @@ st.set_page_config(
     page_title="Analitica 1 - Gli Utenti",
     page_icon="🌍",
 )
-
-batch_size = 5000
 
 st.title('🌍 Analitica 1 - Gli Utenti')
 
@@ -97,10 +92,6 @@ with col2:
 st.markdown("\n\n")
 
 # Aggiungiamo la tag cloud per l'utente selezionato
-stop_words = stopwords.words('english') #Stopwords di nltk
-custom_stopwords = set(STOPWORDS) #Stopwords di gensim
-custom_stopwords.update(['rt', '', '&amp;', '|', 'it\'s']) #Aggiungiamo stopwords personalizzate
-custom_stopwords = list(custom_stopwords)
 
 query = f"""MATCH (u:Utente)-[:ha_twittato]->(m:Messaggio)
             WHERE u.screen_name = '{selected_user}'
@@ -146,25 +137,6 @@ query = f"""MATCH (u:Utente)-[:ha_twittato]->(m:Messaggio)
         """
 query_results = conn.query(query)
 tweets_results = [(record['mergedText'], record['topic']) for record in query_results]
-
-
-#Se il testo supera il limite di token previsto da chatGPT, dividilo in batch
-def split_string_in_batches(stringa, batch_size):
-    batches = []
-    length = len(stringa)
-    start_index = 0
-    end_index = batch_size
-
-    while start_index < length:
-        if end_index >= length:
-            end_index = length
-
-        batch = stringa[start_index:end_index]
-        batches.append(batch)
-
-        start_index = end_index
-        end_index += batch_size
-    return batches
 
 
 def chatGPT_request(text):
@@ -231,32 +203,6 @@ def type_string_GPT_style(string):
         time.sleep(0.02)
 
 
-# Carichiamo il tokenizer ed il modello pre-addestrato di sentiment analysis
-MODEL = f"cardiffnlp/twitter-roberta-base-sentiment-latest"
-tokenizer = AutoTokenizer.from_pretrained(MODEL)
-config = AutoConfig.from_pretrained(MODEL)
-model = AutoModelForSequenceClassification.from_pretrained(MODEL)
-
-
-def perform_sentiment_analysis(_text):
-    # Tokenizzazione del testo di input
-    input = tokenizer(_text, padding=True, truncation=True, max_length=512, return_tensors="pt")
-
-    # Inferenza del modello
-    output = model(**input)
-
-    # Ottieni le predizioni del modello
-    scores = output[0][0].detach().numpy()
-    scores = softmax(scores)
-
-    positive_score = float(scores[config.label2id["positive"]])
-    neutral_score = float(scores[config.label2id["neutral"]])
-    negative_score = float(scores[config.label2id["negative"]])
-
-    sentiment_value = (positive_score + (neutral_score / 2)) - negative_score
-    return sentiment_value
-
-
 sentiment_values = []
 selected_topics = []
 
@@ -274,15 +220,6 @@ for topic in selected_topic:
             sentiment = round(sentiment, 2)
             sentiment_values.append(sentiment)
             selected_topics.append(topic)
-
-# Definizione dei range di valore e dei corrispondenti testi e colori
-ranges = [(-1, -0.7, 'Estremamente negativo', '#D10000'),
-          (-0.7, -0.4, 'Negativo', '#FF0000'),
-          (-0.4, -0.2, 'Leggermente Negativo', '#FF4242'),
-          (-0.2, 0.2, 'Neutro', 'lightgray'),
-          (0.2, 0.4, 'Leggermente Positivo', 'lightgreen'),
-          (0.4, 0.7, 'Positivo', 'mediumseagreen'),
-          (0.7, 1, 'Estremamente positivo', 'green')]
 
 # Creazione dell'istogramma solo se sono presenti valori di sentiment
 if sentiment_values:
@@ -311,7 +248,7 @@ if sentiment_values:
     st.write("-------------------------------------------")
     st.header("Sentiment Analysis dei topic scelti")
     st.write("""Di seguito viene riportato un grafico a barre verticali che rappresenta il sentiment dell'utente selezionato
-                rispetto al topic scelto. Il valore del sentiment è comrpeso tra -1 (estremo negativo) e 1 (estremo positivo).
+                rispetto al topic scelto. Il valore del sentiment è compreso tra -1 (estremo negativo) e 1 (estremo positivo).
             """)
     # Visualizzazione del grafico
     st.plotly_chart(fig)

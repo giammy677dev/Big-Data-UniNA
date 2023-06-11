@@ -1,4 +1,5 @@
 import streamlit as st
+from utils import elenco_bullet
 
 st.set_page_config(
     page_title="Documentazione",
@@ -18,12 +19,6 @@ st.write("Perillo Marco M63/001313")
 st.write("Russo Diego M63/001335")
 
 st.markdown("<br>", unsafe_allow_html=True)
-
-
-def elenco_bullet(testo_grassetto, testo_normale):
-    st.markdown(f"- <span style='color:#00acee'><b>{testo_grassetto}</b></span>: {testo_normale}",
-                unsafe_allow_html=True)
-
 
 with st.expander("**Traccia**"):
     st.write("*Social media platforms play a significant role in shaping the modern digital "
@@ -85,6 +80,7 @@ with st.expander("**Architettura del progetto e tecnologie utilizzate**"):
     st.write("""L'IDE utilizzato è PyCharm, il quale permette una semplice installazione e gestione di tutte le librerie
                 utilizzate.
                 """)
+    st.image("utility/ImgDocumentazione.png")
 
 with st.expander("**Presentazione del dataset e Pre-processing**"):
     st.write("""
