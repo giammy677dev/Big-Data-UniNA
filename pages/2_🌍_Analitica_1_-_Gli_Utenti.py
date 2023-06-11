@@ -187,7 +187,7 @@ def chatGPT_request(text):
 
 
 @st.cache_data
-def chatGPT_script(selected_topic):
+def chatGPT_script(selected_topic, user):
     text = ''
     response_dict = {"Topic": [], "Response": []}
     for tweet, topic in tweets_results:
@@ -263,7 +263,7 @@ selected_topics = []
 # Facciamo la summarization dei tweet e la sentiment analysis
 for topic in selected_topic:
     with st.expander(topic):
-        chatGPT_response = chatGPT_script(topic)
+        chatGPT_response = chatGPT_script(topic, selected_user)
         response_string = chatGPT_response["Response"][0]
         type_string_GPT_style(response_string)
 
@@ -275,13 +275,30 @@ for topic in selected_topic:
             sentiment_values.append(sentiment)
             selected_topics.append(topic)
 
+# Definizione dei range di valore e dei corrispondenti testi e colori
+ranges = [(-1, -0.7, 'Estremamente negativo', '#D10000'),
+          (-0.7, -0.4, 'Negativo', '#FF0000'),
+          (-0.4, -0.2, 'Leggermente Negativo', '#FF4242'),
+          (-0.2, 0.2, 'Neutro', 'lightgray'),
+          (0.2, 0.4, 'Leggermente Positivo', 'lightgreen'),
+          (0.4, 0.7, 'Positivo', 'mediumseagreen'),
+          (0.7, 1, 'Estremamente positivo', 'green')]
+
 # Creazione dell'istogramma solo se sono presenti valori di sentiment
 if sentiment_values:
     fig = go.Figure(data=[go.Bar(x=selected_topics, y=sentiment_values, width=0.3)])
 
+    color_values = []
+
+    for sentiment in sentiment_values:
+        for i, range_ in enumerate(ranges):
+            if range_[0] <= sentiment < range_[1]:
+                color_values.append(range_[3])
+                break
+
     # Assegnazione del colore alle barre in base al valore
     color_scale = 'RdYlGn'  # Scala di colore da rosso a verde
-    color_values = sentiment_values  # Valori dei colori corrispondenti ai valori delle barre
+
     fig.update_traces(marker=dict(color=color_values, colorscale=color_scale))
 
     fig.update_layout(
