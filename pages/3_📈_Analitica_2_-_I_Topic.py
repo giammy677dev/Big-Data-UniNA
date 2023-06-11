@@ -1,7 +1,8 @@
-from utils import st, conn, pd, openai, floor
-from utils import time, batch_size
+from utils import st, conn, pd, openai, floor, np
+from utils import time, batch_size, ranges
 from utils import split_string_in_batches, perform_sentiment_analysis
 import plotly.express as px
+import plotly.graph_objects as go
 
 st.set_page_config(
     page_title="Analitica 2 - I Topic",
@@ -208,6 +209,8 @@ def type_string_GPT_style(string):
         time.sleep(0.02)
 
 
+sentiment_result = []
+
 col3, col4 = st.columns(2)
 
 with col3:
@@ -224,6 +227,13 @@ with col3:
                 """
         query_results = conn.query(query)
         text_results = [record['combined_text'] for record in query_results]
+
+        query = f"""MATCH (m:Messaggio)
+                    WHERE toLower(m.text) CONTAINS '{user_text}'
+                    RETURN m.text
+                """
+        query_results = conn.query(query)
+        sentiment_result = [record['m.text'] for record in query_results]
     else:
         text_results = "NULL"
     user_text = ''
@@ -238,3 +248,50 @@ with col4:
         response_text = ''
 
     type_string_GPT_style(response_text)
+
+if len(text_results) > 0 and text_results != "NULL":
+    st.write("------------------------------------------------------")
+    st.write("**Areogramma del sentiment generato dei tweet sull'argomento ricercato**")
+    st.write(f"""Di seguito viene riportato un areogramma che mostra, in percentuale, il sentiment generato dai tweet
+                sull'argomento ricercato.
+            """)
+    # Recupero i testi dei tweet che hanno risposto o citato (senza retweet) questo tweet per una sentiment analysis 'media'
+    sentiment_list = []
+
+    for text in sentiment_result:
+        sentiment_values = perform_sentiment_analysis(text)
+        sentiment_list.append(sentiment_values)
+
+    # Calcolo delle percentuali dei sentiment
+    sentiment_counts = np.zeros(len(ranges))
+    for sentiment in sentiment_list:
+        for i, range_ in enumerate(ranges):
+            if range_[0] <= sentiment < range_[1]:
+                sentiment_counts[i] += 1
+                break
+    total_tweets = len(sentiment_list)
+    sentiment_percentages = sentiment_counts / total_tweets
+
+    # Aerogramma delle percentuali dei sentiment
+    labels = [range_[2] for range_ in ranges]
+    colors = [range_[3] for range_ in ranges]
+    explode = [0.1] + [0] * (len(ranges) - 1)  # Esplosione della prima fetta
+
+    fig_sentiment_percentages = []
+    fig_labels = []
+    fig_colors = []
+
+    for i in range(len(sentiment_percentages)):
+        if sentiment_percentages[i] != 0:
+            fig_sentiment_percentages.append(sentiment_percentages[i])
+            fig_labels.append(labels[i])
+            fig_colors.append(colors[i])
+
+    fig = go.Figure(data=[go.Pie(labels=fig_labels, values=fig_sentiment_percentages, marker=dict(colors=fig_colors),
+                                 hoverinfo='label+percent', textinfo='percent', hole=0.4)])
+
+    # Visualizzazione del grafico su Streamlit
+    st.plotly_chart(fig, use_container_width=True)
+
+    # Explicitly close the connection
+    conn.close()
