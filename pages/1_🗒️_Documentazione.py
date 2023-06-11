@@ -80,7 +80,7 @@ with st.expander("**Architettura del progetto e tecnologie utilizzate**"):
     st.write("""L'IDE utilizzato è PyCharm, il quale permette una semplice installazione e gestione di tutte le librerie
                 utilizzate.
                 """)
-    st.image("utility/ImgDocumentazione.png")
+    st.image("utility/ImgDocumentazioneProgettoFinale.png")
 
 with st.expander("**Presentazione del dataset e Pre-processing**"):
     st.write("""
