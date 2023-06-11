@@ -69,7 +69,7 @@ query = f"""MATCH (m:Messaggio)-[r]-(u:Utente)
         """
 query_results = conn.query(query)
 string_results = [record['u.screen_name'] for record in query_results]
-selected_user = st.selectbox('Seleziona l\'Opinion Leader:', string_results)
+selected_user = st.selectbox('Seleziona l\'Opinion Leader:', string_results, index=1)
 
 # Layout a due colonne
 col1, col2 = st.columns([3, 1])
