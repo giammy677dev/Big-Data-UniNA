@@ -15,7 +15,7 @@ st.set_page_config(
 
 batch_size = 5000
 
-st.title('Analitica 1 - Gli Utenti')
+st.title('🌍 Analitica 1 - Gli Utenti')
 
 st.write('''In questa sezione è possibile effettuare diverse analitiche sugli utenti. Viene prima riportata una breve
             bio dell'utente. Successivamente, è possibile visualizzare una tag cloud che rappresenta le parole più
