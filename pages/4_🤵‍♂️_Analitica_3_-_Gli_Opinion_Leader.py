@@ -496,7 +496,15 @@ labels = [range_[2] for range_ in ranges]
 colors = [range_[3] for range_ in ranges]
 explode = [0.1] + [0] * (len(ranges) - 1)  # Esplosione della prima fetta
 
-fig = go.Figure(data=[go.Pie(labels=labels, values=sentiment_percentages, marker=dict(colors=colors),
+fig_sentiment_percentages = []
+fig_labels = []
+
+for i in range(len(sentiment_percentages)):
+    if sentiment_percentages[i] != 0:
+        fig_sentiment_percentages.append(sentiment_percentages[i])
+        fig_labels.append(labels[i])
+
+fig = go.Figure(data=[go.Pie(labels=fig_labels, values=fig_sentiment_percentages, marker=dict(colors=colors),
                              hoverinfo='label+percent', textinfo='percent', hole=0.4)])
 
 st.write("**Percentuale Opinion Leader**")
