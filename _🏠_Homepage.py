@@ -35,7 +35,7 @@ elenco_bullet("Analitica 2 - I Topic", """Tale sezione si focalizza sull'analisi
                                         appositamente inserito tramite un box di testo;""")
 elenco_bullet("Analitica 3 - Gli Opinion Leader", """Tale sezione si focalizza principalmente nell'identificazione dei
                                                     cosiddetti "Opinion Leader". Gli Opinion Leader sono coloro che -
-                                                    tramite i proprio contenuti sulla piattaforma - hanno ottenuto molte
+                                                    tramite i propri contenuti sulla piattaforma - hanno ottenuto molte
                                                     interazioni da parte di altri utenti. Lo scopo delle nostre analitiche,
                                                     allora, è stato quello di cercare di identificare in che modo i loro
                                                     contenuti sono stati in grado di influenzare l'opinione pubblica ed
