@@ -72,7 +72,7 @@ def draw_pie_chart(topic):
 st.write("-------------------------------------------------------------------------------")
 st.write("**Bar Chart Race dei Topic ed Areogramma del sentiment**")
 st.write("""La Bar Chart Race riportata di seguito permette di visualizzare come, nel tempo, l'attenzione degli utenti
-            si è spostata da un topic all'altro. Inoltre, viene riportato un aerogramma che mostra la distribuzione percentuale
+            si è spostata da un topic all'altro. Inoltre, viene riportato un areogramma che mostra la distribuzione percentuale
             del sentiment rispetto al topic selezionato. Questo permette di comprendere l'opinione generale degli utenti
             rispetto ad un determinato topic.
          """)
