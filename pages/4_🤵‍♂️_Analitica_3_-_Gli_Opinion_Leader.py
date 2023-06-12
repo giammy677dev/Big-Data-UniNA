@@ -48,8 +48,8 @@ values = [numeroOpinionLeader, numero_non_opinionLeader]
 fig = go.Figure(data=[go.Pie(labels=labels, values=values, marker=dict(colors=colors))])
 
 st.header("Percentuale Opinion Leader")
-st.write(f"""Di seguito viene, innanzitutto, riportata la percentuale di Opinion Leader rispetto al numero totale di utenti.
-             In particolare, un totale di {numeroTotaleUtenti} utenti, gli Opinion Leader sono pari a {numeroOpinionLeader}.""")
+st.write(f"""Di seguito viene, innanzitutto, riportata la percentuale di Opinion Leader rispetto al numero di utenti considerati.
+        """)
 
 # Visualizzazione del grafico su Streamlit
 st.plotly_chart(fig, use_container_width=True)
