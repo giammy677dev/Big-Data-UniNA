@@ -53,10 +53,10 @@ def draw_pie_chart(topic):
     labels = ['Sentiment Positivo', 'Sentiment Neutrale', 'Sentiment Negativo']
     values = [len(positive), len(neutral), len(negative)]
 
-    # Definizione dei colori per aerogramma
+    # Definizione dei colori per areogramma
     colors = ['green', 'lightgray', 'red']
 
-    # Creazione dell'aerogramma
+    # Creazione dell'areogramma
     fig = px.pie(values=values, names=labels, color_discrete_sequence=colors)
 
     # Personalizzazione del layout
@@ -65,7 +65,7 @@ def draw_pie_chart(topic):
     # Modifica le etichette di hover del mouse
     fig.update_traces(hovertemplate='Categoria: %{label}')
 
-    # Visualizzazione dell'aerogramma
+    # Visualizzazione dell'areogramma
     st.plotly_chart(fig)
 
 
@@ -155,8 +155,7 @@ draw_histogram(selected_topic)
 st.write("-------------------------------")
 st.header("Summarization per keyword")
 st.write("""Inserendo una o più parole chiave nel box sottostante, verrà generato accanto un riassunto che esprime la
-            posizione degli utenti che hanno utilizzato tali parole chiave nei propri tweet. Inoltre, viene riportato anche
-            un areogramma che mostra il sentiment espresso in tali tweet.""")
+            posizione degli utenti che hanno utilizzato tali parole chiave nei propri tweet.""")
 
 
 def chatGPT_request(text):
@@ -273,7 +272,7 @@ if len(text_results) > 0 and text_results != "NULL":
     total_tweets = len(sentiment_list)
     sentiment_percentages = sentiment_counts / total_tweets
 
-    # Aerogramma delle percentuali dei sentiment
+    # Areogramma delle percentuali dei sentiment
     labels = [range_[2] for range_ in ranges]
     colors = [range_[3] for range_ in ranges]
     explode = [0.1] + [0] * (len(ranges) - 1)  # Esplosione della prima fetta

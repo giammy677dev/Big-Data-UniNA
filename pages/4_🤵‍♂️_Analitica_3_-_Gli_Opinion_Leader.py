@@ -41,7 +41,7 @@ numero_non_opinionLeader = (numeroTotaleUtenti - numeroOpinionLeader)
 # Definisci i colori personalizzati
 colors = ['#00acee', '#ADD8E6']
 
-# Creazione del grafico ad aerogramma
+# Creazione del grafico ad areogramma
 labels = ['Opinion Leader', 'Non Opinion Leader']
 values = [numeroOpinionLeader, numero_non_opinionLeader]
 
@@ -441,7 +441,7 @@ for sentiment in sentiment_list:
 total_tweets = len(sentiment_list)
 sentiment_percentages = sentiment_counts / total_tweets
 
-# Aerogramma delle percentuali dei sentiment
+# Areogramma delle percentuali dei sentiment
 labels = [range_[2] for range_ in ranges]
 colors = [range_[3] for range_ in ranges]
 explode = [0.1] + [0] * (len(ranges) - 1)  # Esplosione della prima fetta
