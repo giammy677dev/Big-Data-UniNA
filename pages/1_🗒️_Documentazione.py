@@ -126,7 +126,7 @@ with st.expander("**Presentazione del dataset e Pre-processing**"):
     elenco_bullet("qtd_text", "testo del messaggio che è stato citato;")
     elenco_bullet("qtd_hashtag", "hashtag presenti nel messaggio che è stato citato;")
     elenco_bullet("qtd_qtd_count", "numero di volte in cui il messaggio citato è stato citato;")
-    elenco_bullet("qtd_rt_count", "numero di volte in cui il messaggio citato è stata retwittato;")
+    elenco_bullet("qtd_rt_count", "numero di volte in cui il messaggio citato è stata ritwittato;")
     elenco_bullet("qtd_reply_count", "numero di risposte ricevute dal messaggio citato;")
     elenco_bullet("qtd_fav_count", "numero di volte in cui il messaggio citato è stata aggiunto ai preferiti;")
     elenco_bullet("qtd_tweetid", "ID del tweet che è stato citato;")
