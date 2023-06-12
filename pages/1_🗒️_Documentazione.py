@@ -54,12 +54,12 @@ with st.expander("**Traccia**"):
 with st.expander("**Architettura del progetto e tecnologie utilizzate**"):
     st.write("""Al fine di poter realizzare le analitiche riportate in questa dashboard, abbiamo innanzitutto deciso di
                 utilizzare un database a grafo per poter descrivere al meglio le relazioni che intercorrono tra i dati a
-                nostra disposizione. Un databse a grafo, infatti, risulta essere la soluzione ottimale proprio nel caso
+                nostra disposizione. Un database a grafo, infatti, risulta essere la soluzione ottimale proprio nel caso
                 in cui il dominio che si sta trattando è quello del social networking. Nel nostro caso, infatti, il database
-                a grafo ci ha permessso di individuare in modo piuttosto intuitivo (anche visivamente) le relazioni che
+                a grafo ci ha permesso di individuare in modo piuttosto intuitivo (anche visivamente) le relazioni che
                 intercorrono tra i tweet pubblicati dagli utenti, le relative risposte, ricondivisioni e così via. In
                 particolare, il database a grafo da noi scelto è stato Neo4j e, per poter lavorare parallelamente al progetto,
-                abbiamo deciso di utilizzare il servizio AuraDB messo a dsposizione da Neo4j stesso. Tale tecnologia permette
+                abbiamo deciso di utilizzare il servizio AuraDB messo a disposizione da Neo4j stesso. Tale tecnologia permette
                 di avere a disposizione un server remoto su cui caricare il proprio database a grafo. In questo modo, dunque,
                 il database è sempre accessibile ed è possibile accedervi e lavorarci direttamente dall'applicazione di
                 Neo4j Desktop come se il database fosse disponibile in locale.
