@@ -64,7 +64,7 @@ with st.expander("**Architettura del progetto e tecnologie utilizzate**"):
                 il database è sempre accessibile ed è possibile accedervi e lavorarci direttamente dall'applicazione di
                 Neo4j Desktop come se il database fosse disponibile in locale.
                 Per quanto riguarda lo sviluppo del codice, invece, il linguaggio di programmazione utilizzato è stato Python.
-                Abbiamo effettuato staging del codice su GitHub in modo da sfruttare tutti i vantaggi di un sistema di
+                Abbiamo effettuato lo staging del codice su GitHub in modo da sfruttare tutti i vantaggi di un sistema di
                 version control.
                 Tra le librerie più importanti utilizzate per la realizzazione del progetto ricordiamo:
                 """)
