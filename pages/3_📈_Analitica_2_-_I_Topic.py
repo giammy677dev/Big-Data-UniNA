@@ -155,7 +155,8 @@ draw_histogram(selected_topic)
 st.write("-------------------------------")
 st.header("Summarization per keyword")
 st.write("""Inserendo una o più parole chiave nel box sottostante, verrà generato accanto un riassunto che esprime la
-            posizione degli utenti che hanno utilizzato tali parole chiave nei propri tweet.""")
+            posizione degli utenti che hanno utilizzato tali parole chiave nei propri tweet. Inoltre, viene riportato anche
+            un areogramma che riporta il sentiment espresso in tali tweet.""")
 
 
 def chatGPT_request(text):
