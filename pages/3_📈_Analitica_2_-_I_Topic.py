@@ -251,7 +251,7 @@ with col4:
 
 if len(text_results) > 0 and text_results != "NULL":
     st.write("------------------------------------------------------")
-    st.write("**Areogramma del sentiment generato dei tweet sull'argomento ricercato**")
+    st.write("**Areogramma del sentiment generato dai tweet sull'argomento ricercato**")
     st.write(f"""Di seguito viene riportato un areogramma che mostra, in percentuale, il sentiment generato dai tweet
                 sull'argomento ricercato.
             """)
