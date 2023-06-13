@@ -1,9 +1,7 @@
 from utils import st, conn, WordCloud, plt, openai
 from utils import floor, time, batch_size, stop_words, custom_stopwords, ranges
 from utils import split_string_in_batches, perform_sentiment_analysis
-import nltk
 import plotly.graph_objects as go
-nltk.download('stopwords')
 
 st.set_page_config(
     page_title="Analitica 1 - Gli Utenti",
