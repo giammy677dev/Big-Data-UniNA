@@ -11,7 +11,7 @@ st.set_page_config(
 
 st.title('📈 Analitica 2 - I Topic')
 
-st.write("""In questa sezione è possibile visualizzare diverse analitiche sui topic. Oltre ad un bar chart race che riporta
+st.write("""In questa sezione è possibile visualizzare diverse analitiche sui topic. Oltre ad un Bar Chart Race che riporta
             l'andamento dei topic più discussi nel tempo, è possibile selezionare un topic specifico al fine di visualizzare
             appositi grafici che riportano il sentiment generale degli utenti rispetto a quel topic. Infine, viene messo
             a disposizione un box in cui è possibile inserire del testo tramite il quale è possibile ricevere un breve

@@ -247,8 +247,8 @@ if sentiment_values:
 
     st.write("-------------------------------------------")
     st.header("Sentiment Analysis dei topic scelti")
-    st.write("""Di seguito viene riportato un grafico a barre verticali che rappresenta il sentiment dell'utente selezionato
-                rispetto al topic scelto. Il valore del sentiment è compreso tra -1 (estremo negativo) e 1 (estremo positivo).
+    st.write("""Di seguito viene riportato un grafico a barre verticali che rappresenta il sentiment dell'utente
+                rispetto ai topic scelti. Il valore del sentiment è compreso tra -1 (estremo negativo) e 1 (estremo positivo).
             """)
     # Visualizzazione del grafico
     st.plotly_chart(fig)

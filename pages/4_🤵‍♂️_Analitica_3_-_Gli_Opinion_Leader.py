@@ -16,7 +16,7 @@ st.set_page_config(
 st.title("👨‍💼 Analitica 3 - Gli Opinion Leader")
 
 st.write(f"""In questa sezione è possibile effettuare diverse analitiche sugli Opinion Leader. Gli Opinion Leader sono
-            coloro che - tramite i proprio contenuti sulla piattaforma - hanno raggiunto un vasto pubblico di utenti. In
+            coloro che - tramite i propri contenuti sulla piattaforma - hanno raggiunto un vasto pubblico di utenti. In
             particolare, al fine di effettuare le analitiche riportate di seguito, abbiamo considerato Opinion Leader
             tutti gli utenti che presentano un numero di follower superiore a {minNumFollower}.""")
 

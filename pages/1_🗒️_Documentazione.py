@@ -74,7 +74,7 @@ with st.expander("**Architettura del progetto e tecnologie utilizzate**"):
                             di utilizzare tale algoritmo e non un modello pre-addestrato in quanto un modello pre-addestrato
                             non avrebbe potuto ottenere prestazioni soddisfacenti con tweet molto specifici come quelli
                             a nostra disposizione;""")
-    elenco_bullet("HuggingFace", """tale libreria è stata utilizzata per effettuare la sentiment analysis sui tweet condivisi"
+    elenco_bullet("HuggingFace", """tale libreria è stata utilizzata per effettuare la sentiment analysis sui tweet condivisi
                                  dagli utenti;""")
     elenco_bullet("Streamlit", "tale libreria ha semplificato la realizzazione della dashboard stessa.")
     st.write("""L'IDE utilizzato è PyCharm, il quale permette una semplice installazione e gestione di tutte le librerie
@@ -84,8 +84,8 @@ with st.expander("**Architettura del progetto e tecnologie utilizzate**"):
 
 with st.expander("**Presentazione del dataset e Pre-processing**"):
     st.write("""
-           Il dataset su cui sono state realizzate le analitiche raccolgono una serie di tweet riguardanti le elezioni presidenziali americane del 2020. 
-           Tale dataset è stato lavorato andando a rimuovere i campi che non fornivano alcun contributo informativo (colonne costituite da tutti valori uguali, colonne costituite da molti valori nulli e così via).
+           Il dataset su cui sono state realizzate le analitiche raccoglie una serie di tweet riguardanti le elezioni presidenziali americane del 2020. 
+           Tale dataset è stato lavorato andando a rimuovere i campi che non fornivano alcun contributo informativo.
            Il dataset su cui abbiamo realizzato le analitiche risulta essere caratterizzato dai seguenti campi:
              """)
     elenco_bullet("tweetid", "ID del tweet;")
