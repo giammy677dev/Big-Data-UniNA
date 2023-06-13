@@ -249,7 +249,7 @@ with col4:
 
     type_string_GPT_style(response_text)
 
-if len(text_results) > 0 and text_results != "NULL":
+if response_text != "Gli utenti non hanno discusso di questo argomento." and response_text != '':
     st.write("------------------------------------------------------")
     st.write("**Areogramma del sentiment generato dai tweet sull'argomento ricercato**")
     st.write(f"""Di seguito viene riportato un areogramma che mostra, in percentuale, il sentiment generato dai tweet
