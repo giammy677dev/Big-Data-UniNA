@@ -12,3 +12,4 @@ gensim
 plotly
 seaborn
 datetime
+torch
