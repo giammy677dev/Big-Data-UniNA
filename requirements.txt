@@ -11,5 +11,4 @@ nltk
 gensim
 plotly
 seaborn
-calendar
 datetime
