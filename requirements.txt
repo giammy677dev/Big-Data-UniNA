@@ -1,0 +1,14 @@
+neo4j
+openai
+pandas
+streamlit
+wordcloud
+matplotlib
+numpy
+transformers
+scipy
+nltk
+gensim
+plotly
+seaborn
+datetime
