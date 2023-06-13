@@ -5,12 +5,14 @@ import pandas as pd
 from wordcloud import WordCloud
 import matplotlib.pyplot as plt
 import numpy as np
+import nltk
 from transformers import AutoTokenizer, AutoModelForSequenceClassification, AutoConfig
 from scipy.special import softmax
 from nltk.corpus import stopwords
 from gensim.parsing.preprocessing import STOPWORDS
 from math import floor
 import time
+nltk.download('stopwords')
 
 batch_size = 5000
 
