@@ -16,7 +16,7 @@ nltk.download('stopwords')
 
 batch_size = 5000
 
-openai.api_key = "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"
+openai.api_key = "sk-API-KEY"
 
 # Stopwords
 stop_words = stopwords.words('english') #Stopwords di nltk
