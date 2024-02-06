@@ -86,7 +86,7 @@ class Neo4jConnection:
         return response
 
 
-conn = Neo4jConnection(uri="neo4j+s://021210b0.databases.neo4j.io", user="neo4j", pwd="jOYU-cr88yKi0CFddGaPETtuWSqYzE53sS1dH5zPB94")
+conn = Neo4jConnection(uri="DB_URI", user="neo4j", pwd="PASSWORD")
 
 
 # Elenco con bullet list e link ai collegamenti delle sezioni
